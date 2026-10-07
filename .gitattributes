@@ -144,3 +144,7 @@
 *.stl                filter=lfs diff=lfs merge=lfs -text
 *.nc                 filter=lfs diff=lfs merge=lfs -text
 *.mat                filter=lfs diff=lfs merge=lfs -text
+
+# UI icons stay as normal files. Vercel does not download Git LFS objects,
+# so an LFS pointer is served instead of the picture and the icon disappears.
+public/assets/*.png -filter -diff -merge
