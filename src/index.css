@@ -7,9 +7,9 @@
   --color-mute: #65676b;
   --color-line: #e4e6eb;
   --color-canvas: #f0f2f5;
-  --color-violet: #9b3cf6;
-  --color-violet-deep: #7b2ff2;
-  --color-well: #f1ebfe;
+  --color-violet: #7c5ddb;
+  --color-violet-deep: #6847c9;
+  --color-well: #f6f4fd;
 }
 
 html { scroll-behavior: smooth; scroll-padding-top: 96px; }

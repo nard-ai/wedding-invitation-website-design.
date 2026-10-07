@@ -26,7 +26,7 @@ const I = {
   back: (p: IP) => <Svg {...p}><path d="M15 5l-7 7 7 7" /></Svg>,
   gear: (p: IP) => <Svg {...p}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></Svg>,
   more: (p: IP) => <Svg {...p}><circle cx="5" cy="12" r="1" fill="currentColor" /><circle cx="12" cy="12" r="1" fill="currentColor" /><circle cx="19" cy="12" r="1" fill="currentColor" /></Svg>,
-  heart: (p: IP) => <Svg {...p}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" /></Svg>,
+  heart: ({ className = 'size-5' }: IP) => <HeartMark className={className} />,
   x: (p: IP) => <Svg {...p}><path d="M6 6l12 12M18 6L6 18" /></Svg>,
   cal: (p: IP) => <Svg {...p}><rect x="4" y="5" width="16" height="15" rx="3" /><path d="M8 3v4M16 3v4M4 10h16" /></Svg>,
   pin: (p: IP) => <Svg {...p}><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.3" /></Svg>,
@@ -48,6 +48,32 @@ const I = {
   up: (p: IP) => <Svg {...p}><path d="M6 15l6-6 6 6" /></Svg>,
   fb: (p: IP) => <Svg {...p}><path d="M14 8h2V4.5h-2.5A3.5 3.5 0 0 0 10 8v2.5H8V14h2v6.5h3.5V14H16l.5-3.5h-3V8.6c0-.4.2-.6.5-.6z" /></Svg>,
 }
+
+/** The couple's heart mark (from the Figma frame): solid heart with a soft highlight. */
+function BrandHeart({ className = 'size-5', stroke, hi = '#AD9FDF' }: { className?: string; stroke?: string; hi?: string }) {
+  return (
+    <svg viewBox="-1 -1 30 27.47" className={className} fill="none" aria-hidden>
+      <path d="M20.246 0.022705C17.6653 0.022705 15.4057 1.19977 13.9972 3.18939C12.5888 1.19977 10.3292 0.022705 7.74848 0.022705C5.69416 0.0251609 3.72465 0.891799 2.27203 2.43249C0.819414 3.97318 0.00231547 6.0621 0 8.24096C0 17.5196 12.9712 25.0301 13.5236 25.3402C13.6692 25.4233 13.8319 25.4668 13.9972 25.4668C14.1626 25.4668 14.3253 25.4233 14.4709 25.3402C15.0233 25.0301 27.9945 17.5196 27.9945 8.24096C27.9922 6.0621 27.1751 3.97318 25.7225 2.43249C24.2698 0.891799 22.3003 0.0251609 20.246 0.022705Z" fill="currentColor" stroke={stroke} strokeWidth={stroke ? 1.5 : 0} />
+      <path d="M27.9947 8.52157C27.8442 13.1874 24.3287 16.1869 22.9905 16.3019C19.3182 16.3019 17.3386 9.64669 14.0139 3.15788C16.3303 0.0230603 19.8815 -0.588918 22.8243 0.495959C25.0833 1.32875 28.1452 3.85572 27.9947 8.52157Z" fill={hi} />
+    </svg>
+  )
+}
+
+/** The heart mark from the Figma frame: violet circle holding the white heart. */
+function HeartMark({ className = 'size-5' }: { className?: string }) {
+  return (
+    <span className={cx('inline-grid shrink-0 place-items-center rounded-full bg-violet text-white', className)}>
+      <BrandHeart className="w-[56%]" />
+    </span>
+  )
+}
+
+/* Figma icon assets (public/assets) */
+const Ico = ({ f, className = 'size-6' }: { f: string; className?: string }) => <img src={`/assets/${f}`} alt="" aria-hidden className={cx('shrink-0', className)} />
+/** PNG glyphs tinted with currentColor via mask, so they follow active/inactive states. */
+const MaskIco = ({ f, className = 'size-[25px]' }: { f: string; className?: string }) => (
+  <span aria-hidden className={cx('inline-block shrink-0 bg-current', className)} style={{ WebkitMask: `url(/assets/${f}) center/contain no-repeat`, mask: `url(/assets/${f}) center/contain no-repeat` }} />
+)
 
 /* ───────────────────────── likes context: the one-way like ───────────────────────── */
 type Rsvp = null | { accept: boolean; name: string; seats: number; ticket: string }
@@ -136,7 +162,7 @@ function CircleBtn({ kind, size = 'md', onClick, label, className, active }: { k
       )}
     >
       <span key={k} className={cx(k > 0 && 'anim-pop', 'grid')}>
-        {kind === 'x' ? <I.x className={ic} /> : <I.heart className={ic} fill />}
+        {kind === 'x' ? <Ico f="db413.svg" className={ic} /> : <BrandHeart className={ic} />}
       </span>
     </button>
   )
@@ -201,7 +227,7 @@ function PromptCard({ id, answer, children, className, bare }: { id: string; ans
         )}
       >
         <span key={k} className={cx(k > 0 && 'anim-pop', 'grid')}>
-          <I.heart className="size-6" fill={on} />
+          <BrandHeart className="size-6" hi={on ? '#AD9FDF' : '#F6F4FD'} />
         </span>
       </button>
     </section>
@@ -235,7 +261,7 @@ function Entrance({ onOpen }: { onOpen: () => void }) {
         <div className="anim-drop absolute inset-x-4 top-20 mx-auto flex max-w-md items-center gap-3 rounded-[22px] bg-white/80 p-3 pr-4 shadow-xl backdrop-blur-xl [animation-delay:.5s]">
           <div className="relative flex shrink-0">
             <img src={PHOTOS[2]} alt="" className="size-11 rounded-full object-cover ring-2 ring-white" />
-            <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full bg-violet text-white ring-2 ring-white"><I.heart className="size-3" fill /></span>
+            <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full bg-violet text-white ring-2 ring-white"><BrandHeart className="size-3" /></span>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[14px] leading-snug"><b className="font-extrabold">Nick &amp; Rizelle</b> liked you</p>
@@ -280,7 +306,7 @@ function MatchMeter() {
   const C = 2 * Math.PI * R
   // likes fill up to 90%; only a reply closes it.
   const frac = rsvp ? 1 : (liked.size / TOTAL) * 0.9
-  const color = rsvp && !rsvp.accept ? '#bcc0c4' : '#9b3cf6'
+  const color = rsvp && !rsvp.accept ? '#bcc0c4' : '#7c5ddb'
   return (
     <div className="flex items-center" title={rsvp ? 'Matched' : `${liked.size}/${TOTAL} liked — reply to match`}>
       <div className={cx('flex transition-all duration-700', rsvp?.accept ? '-mr-1' : 'mr-1')}>
@@ -345,7 +371,7 @@ function PillBar() {
             rsvp && !rsvp.accept ? 'bg-mute' : 'bg-violet hover:bg-violet-deep',
           )}
         >
-          {rsvp ? (<><I.check className="size-4" />{rsvp.accept ? 'Matched' : 'Replied'}</>) : (<><I.heart className="size-4" fill />Reply</>)}
+          {rsvp ? (<><I.check className="size-4" />{rsvp.accept ? 'Matched' : 'Replied'}</>) : (<><BrandHeart className="size-4" />Reply</>)}
         </a>
       </nav>
     </header>
@@ -412,21 +438,21 @@ function Hero() {
       </div>
 
       <div className="anim-rise text-center md:text-left [animation-delay:.15s]">
-        <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-violet px-3.5 text-[13px] font-medium text-white"><I.rings className="size-4" />Getting married</span>
+        <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-violet px-3.5 text-[13px] font-medium text-white"><Ico f="df0db.svg" />Getting married</span>
         <h1 className="mt-4 text-[52px] leading-[.95] font-extrabold tracking-[-0.035em] md:text-[84px]">Nick &amp;<br />Rizelle</h1>
         <div className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[15px] text-mute md:justify-start">
-          <span className="flex items-center gap-1.5"><I.cal className="size-[18px]" />{DATE_LABEL}</span>
-          <span className="flex items-center gap-1.5"><I.pin className="size-[18px]" />{CITY}</span>
-          <span className="flex items-center gap-1.5"><I.fb className="size-[18px]" />Met on Dating</span>
+          <span className="flex items-center gap-1.5"><Ico f="34e83.svg" />{DATE_LABEL}</span>
+          <span className="flex items-center gap-1.5"><Ico f="1f091.svg" />{CITY}</span>
+          <span className="flex items-center gap-1.5"><Ico f="5f98a.svg" />Met on Dating</span>
         </div>
         <p className="mx-auto mt-5 max-w-md text-[16px] leading-relaxed text-mute md:mx-0">
           We liked you first. Scroll through our profile, heart the parts you love, then like us back to make it a match.
         </p>
         <div className="mt-8 flex justify-center gap-3 md:justify-start">
           {cd.map(([n, l]) => (
-            <div key={l} className="flex w-[72px] flex-col items-center rounded-[22px] bg-well py-3">
+            <div key={l} className="flex w-[72px] flex-col items-center rounded-[16px] bg-violet py-3 text-white">
               <span className="text-[26px] font-extrabold tabular-nums tracking-tight">{String(n).padStart(2, '0')}</span>
-              <span className="text-[11px] font-medium text-mute">{l}</span>
+              <span className="text-[11px] font-medium">{l}</span>
             </div>
           ))}
         </div>
@@ -467,10 +493,10 @@ function Story() {
               [Second paragraph placeholder — the first date, the moment they knew, the proposal at [place].]
             </p>
             <div className="mt-8 flex gap-1 overflow-x-auto no-scrollbar">
-              <IconWell icon={<I.heart />} label="The like" />
-              <IconWell icon={<I.chat />} label="First message" />
-              <IconWell icon={<I.cup />} label="First date" />
-              <IconWell icon={<I.rings />} label="The yes" />
+              <IconWell icon={<Ico f="d7d7b.svg" className="h-[23px] w-[25px]" />} label="The like" />
+              <IconWell icon={<Ico f="84fc6.svg" className="size-[31px]" />} label="First message" />
+              <IconWell icon={<Ico f="24833.svg" className="size-[39px]" />} label="First date" />
+              <IconWell icon={<Ico f="d0a82.svg" className="size-12" />} label="The yes" />
             </div>
           </div>
         </div>
@@ -495,10 +521,10 @@ function Venue({ kind, name, time, img: src }: { kind: string; name: string; tim
       <div className="p-5">
         <span className="inline-flex h-7 items-center rounded-full bg-violet px-3 text-[12px] font-medium text-white">{kind}</span>
         <h3 className="mt-3 text-[22px] font-extrabold tracking-[-0.01em]">{name}</h3>
-        <p className="mt-2 flex items-center gap-1.5 text-[14px] text-mute"><I.pin className="size-4" />[Street address], {CITY}</p>
-        <p className="mt-1 flex items-center gap-1.5 text-[14px] text-mute"><I.cal className="size-4" />{time}</p>
+        <p className="mt-2 flex items-center gap-1.5 text-[14px] text-mute"><Ico f="1f091.svg" />[Street address], {CITY}</p>
+        <p className="mt-1 flex items-center gap-1.5 text-[14px] text-mute"><Ico f="34e83.svg" />{time}</p>
         <a href="#" className="mt-4 inline-flex h-10 items-center gap-1.5 rounded-full bg-white px-4 text-[14px] font-medium ring-1 ring-line transition hover:bg-well active:scale-95">
-          <I.pin className="size-4 text-violet" />Directions
+          <Ico f="e8857.svg" />Directions
         </a>
       </div>
     </div>
@@ -548,7 +574,7 @@ function Attire() {
         <ul className="space-y-3">
           {s.notes.map((n) => (
             <li key={n} className="flex gap-3 rounded-[18px] bg-canvas p-4 text-[15px] text-ink">
-              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-well text-mute"><I.shirt className="size-4" /></span>
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-violet"><Ico f="1f9cb.svg" className="size-[19px]" /></span>
               <span className="pt-1">{n}</span>
             </li>
           ))}
@@ -559,12 +585,12 @@ function Attire() {
 }
 
 const PARTY: { id: string; label: string; icon: ReactNode; people: [string, string][] }[] = [
-  { id: 'couple', label: 'Couple', icon: <I.rings />, people: [['Nick [Surname]', 'Groom'], ['Rizelle [Surname]', 'Bride']] },
-  { id: 'parents', label: 'Parents', icon: <I.users />, people: [["[Groom's father]", 'Father of the groom'], ["[Groom's mother]", 'Mother of the groom'], ["[Bride's father]", 'Father of the bride'], ["[Bride's mother]", 'Mother of the bride']] },
-  { id: 'principal', label: 'Principal', icon: <I.star />, people: [['[Sponsor name]', 'Principal sponsor'], ['[Sponsor name]', 'Principal sponsor'], ['[Sponsor name]', 'Principal sponsor'], ['[Sponsor name]', 'Principal sponsor']] },
-  { id: 'secondary', label: 'Secondary', icon: <I.sparkle />, people: [['[Name]', 'Candle'], ['[Name]', 'Veil'], ['[Name]', 'Cord']] },
-  { id: 'party', label: 'Wedding party', icon: <I.heart />, people: [['[Name]', 'Best man'], ['[Name]', 'Maid of honor'], ['[Name]', 'Groomsman'], ['[Name]', 'Bridesmaid']] },
-  { id: 'little', label: 'Little ones', icon: <I.baby />, people: [['[Name]', 'Ring bearer'], ['[Name]', 'Coin bearer'], ['[Name]', 'Flower girl']] },
+  { id: 'couple', label: 'Couple', icon: <MaskIco f="bb73e.png" />, people: [['Nick [Surname]', 'Groom'], ['Rizelle [Surname]', 'Bride']] },
+  { id: 'parents', label: 'Parents', icon: <MaskIco f="63cfb.png" />, people: [["[Groom's father]", 'Father of the groom'], ["[Groom's mother]", 'Mother of the groom'], ["[Bride's father]", 'Father of the bride'], ["[Bride's mother]", 'Mother of the bride']] },
+  { id: 'principal', label: 'Principal', icon: <MaskIco f="f3d9b.png" />, people: [['[Sponsor name]', 'Principal sponsor'], ['[Sponsor name]', 'Principal sponsor'], ['[Sponsor name]', 'Principal sponsor'], ['[Sponsor name]', 'Principal sponsor']] },
+  { id: 'secondary', label: 'Secondary', icon: <MaskIco f="f5390.png" />, people: [['[Name]', 'Candle'], ['[Name]', 'Veil'], ['[Name]', 'Cord']] },
+  { id: 'party', label: 'Wedding party', icon: <MaskIco f="d7d7b.svg" className="h-[23px] w-[25px]" />, people: [['[Name]', 'Best man'], ['[Name]', 'Maid of honor'], ['[Name]', 'Groomsman'], ['[Name]', 'Bridesmaid']] },
+  { id: 'little', label: 'Little ones', icon: <MaskIco f="3a1aa.png" />, people: [['[Name]', 'Ring bearer'], ['[Name]', 'Coin bearer'], ['[Name]', 'Flower girl']] },
 ]
 
 function Party() {
@@ -822,7 +848,7 @@ function Reply() {
               </Field>
               {err && <p className="anim-fade text-[13px] font-medium text-[#e41e3f]">{err}</p>}
               <button type="submit" className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-violet text-[16px] font-medium text-white transition hover:bg-violet-deep active:scale-[.98]">
-                <I.heart className="size-5" fill />Confirm reply
+                <BrandHeart className="size-5" />Confirm reply
               </button>
             </form>
           )}
@@ -876,7 +902,7 @@ function MatchSheet({ onClose }: { onClose: () => void }) {
           ))}
           <img src={PHOTOS[2]} alt="" className="relative z-10 size-24 -rotate-6 rounded-full object-cover ring-4 ring-white shadow-lg" />
           <span className={cx('relative -ml-5 grid size-24 rotate-6 place-items-center rounded-full text-[36px] font-extrabold text-white ring-4 ring-white shadow-lg', rsvp.accept ? 'bg-violet' : 'bg-[#bcc0c4]')}>{initial}</span>
-          {rsvp.accept && <span className="absolute -bottom-2 z-20 grid size-11 place-items-center rounded-full bg-white text-violet shadow-md"><I.heart className="size-6" fill /></span>}
+          {rsvp.accept && <span className="absolute -bottom-2 z-20 grid place-items-center rounded-full bg-white p-1 shadow-md"><HeartMark className="size-11" /></span>}
         </div>
         <h3 className="mt-6 text-[30px] leading-tight font-extrabold tracking-[-0.02em]">{rsvp.accept ? "It's a match" : "We'll save you a slice"}</h3>
         <p className="mt-2 text-[15px] text-mute">
@@ -902,7 +928,7 @@ function MatchSheet({ onClose }: { onClose: () => void }) {
             <p className="text-[13px] font-medium text-mute">What you liked about us</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[...liked].map((id) => (
-                <span key={id} className="inline-flex h-8 items-center gap-1 rounded-full bg-canvas px-3 text-[13px] font-medium"><I.heart className="size-3.5 text-violet" fill />{PROMPTS[id]}</span>
+                <span key={id} className="inline-flex h-8 items-center gap-1 rounded-full bg-canvas px-3 text-[13px] font-medium"><HeartMark className="size-5" />{PROMPTS[id]}</span>
               ))}
             </div>
           </div>
@@ -936,7 +962,7 @@ function Toast() {
   if (!toast) return null
   return (
     <div key={toast + Date.now()} className="fixed bottom-6 left-1/2 z-50 flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-[14px] font-medium text-white shadow-xl" style={{ animation: 'toast 2.2s ease both' }}>
-      <I.heart className="size-4 text-violet" fill />{toast}
+      <HeartMark className="size-5" />{toast}
     </div>
   )
 }
