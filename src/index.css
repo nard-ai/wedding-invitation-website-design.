@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-ink: #050505;
+  --color-mute: #65676b;
+  --color-line: #e4e6eb;
+  --color-canvas: #f0f2f5;
+  --color-violet: #9b3cf6;
+  --color-violet-deep: #7b2ff2;
+  --color-well: #f1ebfe;
+}
+
+html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+body { background: var(--color-canvas); color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(32px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes drop { from { opacity: 0; transform: translateY(-24px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.32); } 70% { transform: scale(.92); } 100% { transform: scale(1); } }
+@keyframes toast { 0% { opacity: 0; transform: translate(-50%, 16px); } 12%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 8px); } }
+@keyframes burst { from { opacity: 1; transform: translate(0,0) scale(.6); } to { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.1); } }
+@keyframes slideL { to { transform: translateX(-130%) rotate(-14deg); opacity: 0; } }
+@keyframes pulseRing { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+
+.anim-rise { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
+.anim-drop { animation: drop .6s cubic-bezier(.2,.8,.2,1) both; }
+.anim-fade { animation: fade .35s ease both; }
+.anim-pop { animation: pop .45s cubic-bezier(.3,1.4,.5,1); }
+.reveal { opacity: 0; transform: translateY(32px) scale(.97); transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); }
+.reveal.in { opacity: 1; transform: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
