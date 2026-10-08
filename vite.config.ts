@@ -1,4 +1,4 @@
-import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type HtmlTagDescriptor, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
@@ -24,6 +24,7 @@ react(),
       figmaErrorOverlayReplay(),
       figmaReactRefreshBoundaryFallback(),
       figmaMakeKitPlugin({ storiesGlob: '/src/**/*.stories.{ts,tsx,js,jsx}' }),
+      rsvpApi(),
     ],
     resolve: {
       alias: {
@@ -311,6 +312,32 @@ function figmaReactRefreshBoundaryFallback(): Plugin {
  * builds (`vite build`) skip it entirely so the route doesn't leak
  * into shipped bundles.
  */
+function rsvpApi(): Plugin {
+  return {
+    name: 'rsvp-api',
+    apply: 'serve',
+    configureServer(server) {
+      const env = loadEnv(server.config.mode, server.config.root, '')
+      if (env.DATABASE_URL) process.env.DATABASE_URL = env.DATABASE_URL
+      server.middlewares.use(async (req, res, next) => {
+        if (req.url?.split('?')[0] !== '/api/rsvps') return next()
+        try {
+          const mod = (await server.ssrLoadModule('/server/rsvps.ts')) as {
+            handleRsvp: (req: typeof import('node:http').IncomingMessage.prototype, res: typeof import('node:http').ServerResponse.prototype) => Promise<void>
+          }
+          await mod.handleRsvp(req, res)
+        } catch {
+          if (!res.headersSent) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: 'Could not save your reply. Try again.' }))
+          }
+        }
+      })
+    },
+  }
+}
+
 function figmaMakeKitPlugin(options: { storiesGlob: string | string[] }): Plugin {
   const storiesGlob = Array.isArray(options.storiesGlob) ? options.storiesGlob : [options.storiesGlob]
   const ROUTE = '/.figma/make/kit.html'

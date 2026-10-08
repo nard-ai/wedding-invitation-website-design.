@@ -29,6 +29,10 @@ body { background: var(--color-canvas); color: var(--color-ink); font-family: va
   100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), var(--fall)) scale(1) rotate(var(--rot)); }
 }
 @keyframes pulseRing { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes markerDrop { 0% { opacity: 0; transform: translateY(-16px) scale(.86); } 65% { opacity: 1; transform: translateY(3px) scale(1.04); } 100% { opacity: 1; transform: none; } }
+@keyframes ringPulse { 0% { transform: scale(.7); opacity: .5; } 100% { transform: scale(1.75); opacity: 0; } }
+@keyframes chipIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+@keyframes lightboxIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
 
 .anim-rise { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
 .anim-drop { animation: drop .6s cubic-bezier(.2,.8,.2,1) both; }
@@ -41,3 +45,27 @@ body { background: var(--color-canvas); color: var(--color-ink); font-family: va
 .disc { animation: disc 8s linear infinite; animation-play-state: paused; }
 .disc.on { animation-play-state: running; }
 .heart-drop { animation: heartfall 1.35s ease-in forwards; }
+.party-card { box-shadow: inset 0 0 0 1px #e4e6eb; transition: box-shadow .2s ease; }
+.party-card:is(:hover, :active) { box-shadow: inset 0 0 0 1px #7c5ddb; }
+.party-avatar { transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+.party-card:is(:hover, :active) .party-avatar { transform: scale(1.06) rotate(-4deg); }
+.party-rise { animation: rise .55s cubic-bezier(.2,.8,.2,1) both; }
+.party-panel { transition: opacity .18s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .party-avatar { transition: none; }
+  .party-card:is(:hover, :active) .party-avatar { transform: none; }
+  .party-rise { animation: none; }
+  .party-panel { transition: none; }
+  .nav-hi, .nav-bar, .nav-join, .nav-pop, .eq i { animation: none !important; transition: none !important; }
+}
+.nav-hi { transition: transform .5s cubic-bezier(.2, 1.25, .32, 1), width .5s cubic-bezier(.2, 1.25, .32, 1); }
+.nav-bar { transition: transform .25s ease, background-color .25s ease, box-shadow .25s ease, max-width .25s ease; }
+.nav-join { animation: navJoin .7s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes navJoin { from { opacity: 0; transform: translateX(-12px) scale(.6); } to { opacity: 1; transform: none; } }
+.nav-pop { animation: navPop .9s ease-out both; }
+@keyframes navPop { 0% { opacity: 1; transform: translate(0, 0) scale(.6); } 100% { opacity: 0; transform: translate(var(--dx), -28px) scale(1); } }
+.eq { display: inline-flex; align-items: flex-end; gap: 1px; height: 10px; }
+.eq i { display: block; width: 2px; height: 100%; background: currentColor; transform-origin: bottom; animation: eq .7s ease-in-out infinite; }
+.eq i:nth-child(2) { animation-delay: .15s; }
+.eq i:nth-child(3) { animation-delay: .3s; }
+@keyframes eq { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }

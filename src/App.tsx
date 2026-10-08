@@ -1,9 +1,9 @@
-import { createContext, useContext, useEffect, useRef, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject } from 'react'
 
 /* ───────────────────────── placeholders ───────────────────────── */
-const WEDDING_DATE = new Date('2027-02-14T15:00:00') // [DATE PLACEHOLDER]
-const DATE_LABEL = '[Wedding date] · 3:00 PM'
-const CITY = '[City]'
+const WEDDING_DATE = new Date('2027-01-21T15:30:00+08:00')
+const DATE_LABEL = 'January 21, 2027 · 3:30 PM'
+const CITY = 'Tagaytay'
 const img = (id: string, w = 1080) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`
 const PHOTOS = [
   img('1726766406089-0308c800b6b2'),
@@ -76,7 +76,7 @@ const MaskIco = ({ f, className = 'size-[25px]' }: { f: string; className?: stri
 )
 
 /* ───────────────────────── likes context: the one-way like ───────────────────────── */
-type Rsvp = null | { accept: boolean; name: string; seats: number; ticket: string }
+type Rsvp = null | { accept: boolean; name: string; seats: number; ticket: string; email?: string; mobile?: string; msg?: string }
 type Ctx = {
   liked: Set<string>
   toggle: (id: string, label: string) => void
@@ -199,6 +199,7 @@ function CircleBtn({ kind, size = 'md', onClick, label, className, active }: { k
   const ic = { sm: 'size-5', md: 'size-7', lg: 'size-9' }[size]
   return (
     <button
+      type="button"
       aria-label={label}
       onClick={(e) => {
         setK((v) => v + 1)
@@ -220,20 +221,24 @@ function CircleBtn({ kind, size = 'md', onClick, label, className, active }: { k
   )
 }
 
-function IconWell({ icon, label, active, onClick }: { icon: ReactNode; label: string; active?: boolean; onClick?: () => void }) {
-  const Comp = onClick ? 'button' : 'div'
-  return (
-    <Comp onClick={onClick} className="group flex w-[68px] shrink-0 flex-col items-center gap-1.5">
-      <span
-        className={cx(
-          'grid size-12 place-items-center rounded-full transition-all duration-300 group-active:scale-90',
-          active ? 'bg-violet text-white' : 'bg-well text-mute',
+function IconWell({ icon, label, active, onClick, count, tabId, panelId, tabIndex, onKeyDown }: { icon: ReactNode; label: string; active?: boolean; onClick?: () => void; count?: number; tabId?: string; panelId?: string; tabIndex?: number; onKeyDown?: (e: KeyboardEvent<HTMLButtonElement>) => void }) {
+  const className = "group flex w-[72px] shrink-0 snap-start flex-col items-center gap-1.5 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+  const body = (
+    <>
+      <span className="relative">
+        <span className={cx('grid size-12 place-items-center rounded-full transition-all duration-300 group-active:scale-90', active ? 'bg-violet text-white' : 'bg-well text-mute')}>{icon}</span>
+        {count != null && (
+          <span className={cx('absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] font-medium', active ? 'bg-white text-violet' : 'bg-violet text-white')}>{count}</span>
         )}
-      >
-        {icon}
       </span>
       <span className={cx('text-center text-[11px] leading-tight font-medium', active ? 'text-violet' : 'text-mute')}>{label}</span>
-    </Comp>
+    </>
+  )
+  if (!onClick) return <div className={className}>{body}</div>
+  return (
+    <button type="button" onClick={onClick} onKeyDown={onKeyDown} id={tabId} role={tabId ? 'tab' : undefined} aria-selected={tabId ? !!active : undefined} aria-controls={panelId} tabIndex={tabIndex} className={className}>
+      {body}
+    </button>
   )
 }
 
@@ -250,7 +255,7 @@ function useReveal<T extends HTMLElement>() {
 }
 
 /** Each section is a prompt card on the couple's profile, with its own like-heart. */
-function PromptCard({ id, answer, children, className, bare }: { id: string; answer?: ReactNode; children?: ReactNode; className?: string; bare?: boolean }) {
+function PromptCard({ id, answer, aside, children, className, bare }: { id: string; answer?: ReactNode; aside?: ReactNode; children?: ReactNode; className?: string; bare?: boolean }) {
   const ref = useReveal<HTMLElement>()
   const { liked, toggle, rsvp } = useLikes()
   const on = liked.has(id)
@@ -259,10 +264,13 @@ function PromptCard({ id, answer, children, className, bare }: { id: string; ans
     <section id={id} ref={ref} className={cx('reveal relative', className)}>
       <div className={cx('relative rounded-[28px] bg-white', !bare && 'p-6 md:p-10', 'shadow-[0_1px_2px_rgba(0,0,0,.06),0_8px_30px_rgba(0,0,0,.04)]')}>
         {!bare && (
-          <>
-            <p className="text-[13px] font-medium text-mute">{PROMPTS[id]}…</p>
-            {answer && <h2 className="mt-1.5 max-w-2xl text-[26px] leading-[1.15] font-extrabold tracking-[-0.02em] md:text-[34px]">{answer}</h2>}
-          </>
+          <div className={cx(aside ? 'flex flex-wrap items-start justify-between gap-x-4 gap-y-2' : false)}>
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-mute">{PROMPTS[id]}…</p>
+              {answer && <h2 className="mt-1.5 max-w-2xl text-[26px] leading-[1.15] font-extrabold tracking-[-0.02em] md:text-[34px]">{answer}</h2>}
+            </div>
+            {aside}
+          </div>
         )}
         {children}
       </div>
@@ -362,36 +370,65 @@ function MatchMeter() {
   // likes fill up to 90%; only a reply closes it.
   const frac = rsvp ? 1 : (liked.size / TOTAL) * 0.9
   const color = rsvp && !rsvp.accept ? '#bcc0c4' : '#7c5ddb'
+  const tip = rsvp ? (rsvp.accept ? 'Matched' : 'Replied') : `${liked.size}/${TOTAL} liked`
   return (
-    <div className="flex items-center" title={rsvp ? 'Matched' : `${liked.size}/${TOTAL} liked — reply to match`}>
-      <div className={cx('flex transition-all duration-700', rsvp?.accept ? '-mr-1' : 'mr-1')}>
-        <span className="z-10 grid size-9 place-items-center rounded-full bg-ink text-[12px] font-extrabold text-white ring-2 ring-white">N</span>
-        <span className="-ml-2.5 grid size-9 place-items-center rounded-full bg-violet text-[12px] font-extrabold text-white ring-2 ring-white">R</span>
-      </div>
-      <div className="relative grid size-11 place-items-center">
-        <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90">
-          <circle cx="22" cy="22" r={R} fill="none" stroke="#e4e6eb" strokeWidth="2.5" strokeDasharray={rsvp ? undefined : '3 3'} />
-          <circle
-            cx="22" cy="22" r={R} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"
-            strokeDasharray={C} strokeDashoffset={C * (1 - frac)}
-            style={{ transition: 'stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1), stroke .5s' }}
-          />
-        </svg>
-        {rsvp ? (
-          <span key="g" className={cx('anim-drop grid size-8 place-items-center rounded-full text-[12px] font-extrabold text-white', rsvp.accept ? 'bg-violet' : 'bg-[#bcc0c4]')}>
-            {rsvp.name.trim()[0]?.toUpperCase() || 'Y'}
-          </span>
-        ) : (
-          <span className="text-[10px] font-medium text-mute">You</span>
-        )}
-      </div>
+    <div className="group relative hidden size-11 shrink-0 place-items-center md:grid">
+      <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90">
+        <circle cx="22" cy="22" r={R} fill="none" stroke="#e4e6eb" strokeWidth="2.5" strokeDasharray={rsvp ? undefined : '3 3'} />
+        <circle
+          cx="22" cy="22" r={R} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"
+          strokeDasharray={C} strokeDashoffset={C * (1 - frac)}
+          style={{ transition: 'stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1), stroke .5s' }}
+        />
+      </svg>
+      {rsvp ? (
+        <GuestFace name={rsvp.name} className="anim-drop size-8" />
+      ) : (
+        <span className="text-[10px] font-medium text-mute">You</span>
+      )}
+      <span className="pointer-events-none absolute top-full left-1/2 z-10 mt-1 -translate-x-1/2 rounded-full bg-ink px-2 py-1 text-[11px] font-medium whitespace-nowrap text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">{tip}</span>
     </div>
   )
 }
 
-function PillBar() {
-  const [active, setActive] = useState('')
+function CoupleFaces() {
+  return (
+    <span className="flex shrink-0 items-center">
+      <img src="/nick.png" alt="" className="size-9 rounded-full object-cover ring-2 ring-white" />
+      <img src="/rizelle.png" alt="" className="-ml-3 size-9 rounded-full object-cover ring-2 ring-white" />
+    </span>
+  )
+}
+
+const TABS: { id: string; label: string; icon: ReactNode; href?: string }[] = [
+  { id: 'story', label: 'Story', href: '#story', icon: <I.chat className="size-5" /> },
+  { id: 'day', label: 'Day', href: '#day', icon: <I.cal className="size-5" /> },
+  { id: 'party', label: 'People', href: '#party', icon: <I.users className="size-5" /> },
+  { id: 'photos', label: 'Photos', href: '#photos', icon: <I.star className="size-5" /> },
+  { id: 'more', label: 'More', icon: <I.more className="size-5" /> },
+]
+
+function NavBar({ audioRef, playing, onToggle }: { audioRef: RefObject<HTMLAudioElement | null>; playing: boolean; onToggle: () => void }) {
   const { rsvp } = useLikes()
+  const [active, setActive] = useState('')
+  const [y, setY] = useState(0)
+  const [hidden, setHidden] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [musicOpen, setMusicOpen] = useState(false)
+  const [muted, setMuted] = useState(false)
+  const [more, setMore] = useState(false)
+  const [celebrate, setCelebrate] = useState(false)
+  const [ratio, setRatio] = useState(0)
+  const [pill, setPill] = useState({ x: 0, w: 0 })
+  const prevAccept = useRef(rsvp?.accept)
+  const lastY = useRef(0)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
+  const musicRef = useRef<HTMLDivElement>(null)
+  const solid = y > 80
+  const show = !hidden || active === 'reply' || y < 80
+  const days = daysUntilWedding()
+  const status = !rsvp ? `Liked you · ${Math.max(0, days)} days to go` : rsvp.accept ? 'Matched · see you on Jan 21' : 'Replied · thank you'
   useEffect(() => {
     const ids = [...NAV.map((n) => n[0]), 'reply']
     const io = new IntersectionObserver(
@@ -401,35 +438,196 @@ function PillBar() {
     ids.forEach((i) => document.getElementById(i) && io.observe(document.getElementById(i)!))
     return () => io.disconnect()
   }, [])
+
+  useEffect(() => {
+    const onScroll = () => {
+      const next = window.scrollY
+      const dy = next - lastY.current
+      setY(next)
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      setProgress(max > 0 ? next / max : 0)
+      if (dy > 12 && next > 80) setHidden(true)
+      else if (dy < -4 || next < 80) setHidden(false)
+      lastY.current = next
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    if (rsvp?.accept && prevAccept.current !== true && !sessionStorage.getItem('nr-celebrated')) {
+      sessionStorage.setItem('nr-celebrated', '1')
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        setCelebrate(true)
+        window.setTimeout(() => setCelebrate(false), 1100)
+      }
+    }
+    prevAccept.current = rsvp?.accept
+  }, [rsvp])
+
+  useLayoutEffect(() => {
+    const place = () => {
+      const el = linkRefs.current[active]
+      if (!el) { setPill({ x: 0, w: 0 }); return }
+      setPill({ x: el.offsetLeft, w: el.offsetWidth })
+    }
+    place()
+    const track = trackRef.current
+    track?.addEventListener('scroll', place, { passive: true })
+    window.addEventListener('resize', place)
+    return () => {
+      track?.removeEventListener('scroll', place)
+      window.removeEventListener('resize', place)
+    }
+  }, [active])
+
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    const tick = () => setRatio(audio.duration ? audio.currentTime / audio.duration : 0)
+    audio.addEventListener('timeupdate', tick)
+    return () => audio.removeEventListener('timeupdate', tick)
+  }, [audioRef])
+
+  useEffect(() => {
+    if (!musicOpen && !more) return
+    const onKey = (e: { key: string }) => { if (e.key === 'Escape') { setMusicOpen(false); setMore(false) } }
+    const onDown = (e: PointerEvent) => {
+      if (musicRef.current && !musicRef.current.contains(e.target as Node)) setMusicOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('pointerdown', onDown)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('pointerdown', onDown)
+    }
+  }, [musicOpen, more])
+
+  const seek = (e: MouseEvent<HTMLButtonElement>) => {
+    const audio = audioRef.current
+    if (!audio?.duration) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    audio.currentTime = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)) * audio.duration
+  }
+  const toggleMute = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.muted = !audio.muted
+    setMuted(audio.muted)
+  }
+  const onMusic = () => {
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) onToggle()
+    else setMusicOpen((v) => !v)
+  }
+  const focus = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet'
+  const moreOn = more || active === 'attire' || active === 'faq' || active === 'gift'
+
   return (
-    <header className="anim-drop fixed inset-x-0 top-3 z-40 px-3">
-      <nav className="mx-auto flex max-w-6xl items-center gap-2 rounded-full bg-white/85 p-1.5 pl-2 shadow-[0_4px_24px_rgba(0,0,0,.08)] ring-1 ring-black/5 backdrop-blur-xl">
-        <a href="#top" aria-label="Top"><MatchMeter /></a>
-        <div className="no-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto px-1">
-          {NAV.map(([id, label]) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              className={cx(
-                'shrink-0 rounded-full px-3.5 py-2 text-[14px] font-medium transition-colors duration-300',
-                active === id ? 'bg-well text-violet' : 'text-mute hover:text-ink',
-              )}
+    <>
+      <header className={cx('nav-bar fixed inset-x-0 top-3 z-40 px-3', show ? 'translate-y-0' : '-translate-y-[140%]')}>
+        <nav aria-label="Invitation sections" className={cx('relative mx-auto flex h-16 items-center gap-2 px-2', solid ? 'max-w-[1152px] rounded-full bg-white/80 shadow-[0_8px_30px_rgba(0,0,0,.06)] ring-1 ring-line backdrop-blur-xl' : 'max-w-[1280px]')}>
+          <a href="#top" className={cx('flex min-w-0 items-center gap-2 rounded-full active:scale-[.92]', focus)}>
+            <CoupleFaces />
+            <span className="min-w-0">
+              <span className="block truncate text-[14px] leading-tight font-extrabold">Nick &amp; Rizelle</span>
+              <span className="hidden truncate text-[12px] font-normal text-mute max-md:block lg:block">{status}</span>
+            </span>
+          </a>
+          <div ref={trackRef} className="no-scrollbar relative hidden min-w-0 flex-1 snap-x snap-mandatory items-center gap-1 overflow-x-auto md:flex md:max-lg:[mask-image:linear-gradient(to_right,transparent,black_12px,black_calc(100%-12px),transparent)]">
+            {pill.w > 0 && <span aria-hidden className="nav-hi pointer-events-none absolute top-1/2 left-0 h-10 rounded-full bg-well" style={{ width: pill.w, transform: `translateX(${pill.x}px) translateY(-50%)` }} />}
+            {NAV.map(([id, label]) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                ref={(el) => { linkRefs.current[id] = el }}
+                aria-current={active === id ? 'page' : undefined}
+                className={cx('relative z-[1] shrink-0 snap-start rounded-full px-3.5 py-2 text-[14px] font-medium transition-colors duration-200 active:scale-[.92]', focus, active === id ? 'text-violet' : 'text-mute hover:bg-canvas hover:text-ink')}
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
+            <div
+              ref={musicRef}
+              className="relative"
+              onMouseEnter={() => { if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) setMusicOpen(true) }}
+              onMouseLeave={() => { if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) setMusicOpen(false) }}
             >
-              {label}
+              <button type="button" aria-pressed={playing} aria-expanded={musicOpen} aria-label={playing ? 'Pause music' : 'Play music'} onClick={onMusic} className={cx('inline-flex size-11 items-center justify-center gap-1 rounded-full bg-well text-violet active:scale-[.92] md:size-10', focus)}>
+                {playing ? (
+                  <>
+                    <svg viewBox="0 0 24 24" className="size-3.5" fill="currentColor" aria-hidden><path d="M7 5h3.2v14H7zM13.8 5H17v14h-3.2z" /></svg>
+                    <span className="eq" aria-hidden><i /><i /><i /></span>
+                  </>
+                ) : (
+                  <svg viewBox="0 0 24 24" className="size-4" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>
+                )}
+              </button>
+              {musicOpen && (
+                <div className="absolute top-[calc(100%+8px)] right-0 w-64 rounded-[22px] bg-white p-3 text-left shadow-[0_8px_30px_rgba(0,0,0,.08)] ring-1 ring-line">
+                  <p className="text-[14px] font-extrabold">Fallen</p>
+                  <p className="text-[12px] text-mute">Lola Amour</p>
+                  <button type="button" aria-label="Song progress" onClick={seek} className="mt-3 block h-0.5 w-full overflow-hidden rounded-full bg-canvas">
+                    <span className="block h-full rounded-full bg-violet" style={{ width: `${ratio * 100}%` }} />
+                  </button>
+                  <div className="mt-3 flex gap-2">
+                    <button type="button" onClick={onToggle} aria-label={playing ? 'Pause music' : 'Play music'} className={cx('h-10 flex-1 rounded-full bg-violet text-[13px] font-medium text-white active:scale-[.92]', focus)}>{playing ? 'Pause' : 'Play'}</button>
+                    <button type="button" onClick={toggleMute} aria-pressed={muted} aria-label={muted ? 'Unmute' : 'Mute'} className={cx('h-10 rounded-full bg-well px-3 text-[13px] font-medium text-violet active:scale-[.92]', focus)}>{muted ? 'Unmute' : 'Mute'}</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <MatchMeter />
+            <a href="#reply" className={cx('relative inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-[14px] font-medium text-white active:scale-[.92] md:h-10', focus, rsvp && !rsvp.accept ? 'bg-mute' : 'bg-violet hover:bg-violet-deep')}>
+              {rsvp ? (<><I.check className="size-4" />{rsvp.accept ? 'Matched' : 'Replied'}</>) : (<><BrandHeart className="size-4" />Reply</>)}
+              {celebrate && [0, 1, 2, 3, 4].map((i) => (
+                <span key={i} className="nav-pop pointer-events-none absolute bottom-1 left-1/2 text-violet" style={{ ['--dx' as string]: `${(i - 2) * 12}px`, animationDelay: `${i * 40}ms` }}><BrandHeart className="size-3" hi="#E4DCF8" /></span>
+              ))}
             </a>
-          ))}
-        </div>
-        <a
-          href="#reply"
-          className={cx(
-            'flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-[14px] font-medium text-white transition active:scale-95',
-            rsvp && !rsvp.accept ? 'bg-mute' : 'bg-violet hover:bg-violet-deep',
+          </div>
+          {solid && (
+            <span aria-hidden className="pointer-events-none absolute inset-x-6 bottom-0 h-0.5 overflow-hidden rounded-full">
+              <span className="block h-full bg-violet" style={{ width: `${progress * 100}%` }} />
+            </span>
           )}
-        >
-          {rsvp ? (<><I.check className="size-4" />{rsvp.accept ? 'Matched' : 'Replied'}</>) : (<><BrandHeart className="size-4" />Reply</>)}
-        </a>
+        </nav>
+      </header>
+      <nav aria-label="Invitation sections" className="fixed inset-x-2 z-40 md:hidden" style={{ bottom: 'max(8px, env(safe-area-inset-bottom))' }}>
+        <div className="mx-auto flex max-w-md items-end justify-between rounded-full bg-white/80 px-2 py-1.5 shadow-[0_8px_30px_rgba(0,0,0,.06)] ring-1 ring-line backdrop-blur-xl">
+          {TABS.map((t) => {
+            const on = t.id === 'more' ? moreOn : active === t.id
+            return (
+              <a
+                key={t.id}
+                href={t.href || '#reply'}
+                aria-current={t.id !== 'more' && active === t.id ? 'page' : undefined}
+                aria-expanded={t.id === 'more' ? more : undefined}
+                onClick={t.id === 'more' ? (e) => { e.preventDefault(); setMore((v) => !v) } : () => setMore(false)}
+                className={cx('flex min-w-11 flex-col items-center gap-0.5 rounded-full active:scale-[.92]', focus)}
+              >
+                <span className={cx('grid size-11 place-items-center rounded-full', on ? 'bg-violet text-white' : 'bg-well text-mute')}>{t.icon}</span>
+                <span className={cx('text-[10px] font-medium', on ? 'text-violet' : 'text-mute')}>{t.label}</span>
+              </a>
+            )
+          })}
+        </div>
       </nav>
-    </header>
+      {more && (
+        <div className="fixed inset-0 z-50 md:hidden" role="presentation">
+          <button type="button" aria-label="Close more sections" className="absolute inset-0 bg-black/40" onClick={() => setMore(false)} />
+          <div className="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white p-5" style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}>
+            <p className="text-[13px] font-medium text-mute">More</p>
+            <div className="mt-3 grid gap-2">
+              {[['attire', 'Attire'], ['faq', 'FAQ'], ['gift', 'Gifts']].map(([id, label]) => (
+                <a key={id} href={`#${id}`} onClick={() => setMore(false)} aria-current={active === id ? 'page' : undefined} className={cx('flex h-12 items-center rounded-full bg-well px-4 text-[15px] font-medium active:scale-[.92]', focus, active === id ? 'text-violet' : 'text-ink')}>{label}</a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -521,14 +719,43 @@ function Quote() {
   return (
     <PromptCard id="quote" className="mx-auto max-w-3xl">
       <blockquote className="mt-3 text-[22px] leading-snug font-medium tracking-[-0.01em] md:text-[28px]">
-        “[Short quote placeholder — a line about choosing each other, every day, on purpose.]”
+        “Therefore a man shall leave his father and his mother and hold fast to his wife, and they shall become one flesh.”
       </blockquote>
-      <p className="mt-4 text-[13px] text-mute">— [Source placeholder]</p>
+      <p className="mt-4 text-[13px] text-mute">Genesis 2:24</p>
     </PromptCard>
   )
 }
 
+const FIRST_CHATS = [
+  { src: '/chat-1.jpg', alt: 'January 7. Rizelle says hi to Dion.' },
+  { src: '/chat-2.jpg', alt: 'January 8. They talk about work and Batangas.' },
+  { src: '/chat-3.jpg', alt: 'January 8. Lunch, then Facebook will not let them add each other.' },
+  { src: '/chat-4.jpg', alt: 'They switch the chat to Messenger.' },
+]
+
 function Story() {
+  const [chat, setChat] = useState(false)
+  const [ends, setEnds] = useState({ start: true, end: false })
+  const rail = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!chat) return
+    const el = rail.current
+    if (el) mark(el)
+    const onKey = (e: { key: string }) => { if (e.key === 'Escape') setChat(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [chat])
+  const mark = (el: HTMLDivElement) => {
+    const max = el.scrollWidth - el.clientWidth
+    setEnds({ start: el.scrollLeft <= 2, end: max <= 2 || el.scrollLeft >= max - 2 })
+  }
+  const go = (dir: number) => {
+    const el = rail.current
+    const fig = el?.querySelector('figure')
+    if (!el || !fig) return
+    const step = fig.getBoundingClientRect().width + 16
+    el.scrollBy({ left: dir * step, behavior: 'smooth' })
+  }
   return (
     <PromptCard id="story" bare className="mx-auto max-w-6xl">
       <div className="grid overflow-hidden md:grid-cols-2">
@@ -537,7 +764,7 @@ function Story() {
           <span className="absolute top-4 left-4 rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium backdrop-blur-xl">Their first photo together</span>
         </div>
         <div className="relative p-6 md:p-12">
-          <span aria-hidden className="pointer-events-none absolute -top-2 right-4 text-[120px] leading-none font-extrabold tracking-[-0.06em] text-well select-none md:text-[180px]">20XX</span>
+          <span aria-hidden className="pointer-events-none absolute -top-2 right-4 text-[120px] leading-none font-extrabold tracking-[-0.06em] text-well select-none md:text-[180px]">2027</span>
           <div className="relative">
             <p className="text-[13px] font-medium text-mute">{PROMPTS.story}…</p>
             <h2 className="mt-1.5 text-[30px] leading-[1.1] font-extrabold tracking-[-0.02em] md:text-[40px]">A like, a reply, and then every day after.</h2>
@@ -549,73 +776,324 @@ function Story() {
             </p>
             <div className="mt-8 flex gap-1 overflow-x-auto no-scrollbar">
               <IconWell icon={<Ico f="d7d7b.svg" className="h-[23px] w-[25px]" />} label="The like" />
-              <IconWell icon={<Ico f="84fc6.svg" className="size-[31px]" />} label="First message" />
+              <IconWell icon={<Ico f="84fc6.svg" className="size-[31px]" />} label="First message" active={chat} onClick={() => { setEnds({ start: true, end: false }); setChat(true) }} />
               <IconWell icon={<Ico f="24833.svg" className="size-[39px]" />} label="First date" />
               <IconWell icon={<Ico f="d0a82.svg" className="size-12" />} label="The yes" />
             </div>
           </div>
         </div>
       </div>
+      {chat && (
+        <div className="anim-fade fixed inset-0 z-[70] flex items-end justify-center bg-black/55 backdrop-blur-sm sm:items-center sm:p-6" onClick={() => setChat(false)} role="dialog" aria-modal aria-label="Their first message">
+          <div className="anim-rise flex max-h-[92vh] w-full max-w-5xl flex-col rounded-t-[32px] bg-white p-5 sm:rounded-[32px] sm:p-7" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-medium text-mute">Facebook Dating, January 7</p>
+                <h3 className="mt-1 text-[24px] leading-tight font-extrabold tracking-[-0.02em]">Their first message</h3>
+              </div>
+              <CircleBtn kind="x" size="sm" label="Close" onClick={() => setChat(false)} />
+            </div>
+            <div className="relative mt-5 min-w-0">
+              <div
+                ref={rail}
+                onScroll={(e) => mark(e.currentTarget)}
+                className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth pb-1"
+              >
+                {FIRST_CHATS.map((shot, i) => (
+                  <figure key={shot.src} className="w-[220px] shrink-0 sm:w-[250px]">
+                    <img src={shot.src} alt={shot.alt} className="max-h-[62vh] w-full rounded-[28px] bg-[#1c1c1e] object-contain object-top" />
+                    <figcaption className="mt-2 text-center text-[12px] font-medium text-mute">{i + 1} / {FIRST_CHATS.length}</figcaption>
+                  </figure>
+                ))}
+              </div>
+              <button type="button" aria-label="Previous chat" disabled={ends.start} onClick={() => go(-1)} className="absolute top-[30vh] left-1 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white text-ink shadow-md disabled:opacity-30">
+                <I.back className="size-5" />
+              </button>
+              <button type="button" aria-label="Next chat" disabled={ends.end} onClick={() => go(1)} className="absolute top-[30vh] right-1 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white text-ink shadow-md disabled:opacity-30">
+                <I.arrow className="size-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PromptCard>
   )
 }
 
-function Venue({ kind, name, time, img: src }: { kind: string; name: string; time: string; img: string }) {
-  return (
-    <div className="overflow-hidden rounded-[24px] bg-canvas">
-      <div className="relative h-56 md:h-64">
-        <iframe
-          title={`${kind} map`}
-          className="size-full grayscale-[.4]"
-          loading="lazy"
-          src="https://www.openstreetmap.org/export/embed.html?bbox=120.97%2C14.55%2C121.03%2C14.60&layer=mapnik"
-        />
-        <img src={src} alt="" className="absolute bottom-3 left-3 size-16 rounded-2xl object-cover ring-4 ring-white" />
-        <span className="absolute top-3 right-3 rounded-full bg-white/80 px-3 py-1.5 text-[12px] font-medium backdrop-blur-xl">Map placeholder</span>
-      </div>
-      <div className="p-5">
-        <span className="inline-flex h-7 items-center rounded-full bg-violet px-3 text-[12px] font-medium text-white">{kind}</span>
-        <h3 className="mt-3 text-[22px] font-extrabold tracking-[-0.01em]">{name}</h3>
-        <p className="mt-2 flex items-center gap-1.5 text-[14px] text-mute"><Ico f="1f091.svg" />[Street address], {CITY}</p>
-        <p className="mt-1 flex items-center gap-1.5 text-[14px] text-mute"><Ico f="34e83.svg" />{time}</p>
-        <a href="#" className="mt-4 inline-flex h-10 items-center gap-1.5 rounded-full bg-white px-4 text-[14px] font-medium ring-1 ring-line transition hover:bg-well active:scale-95">
-          <Ico f="e8857.svg" />Directions
-        </a>
-      </div>
-    </div>
-  )
+const VENUE_LAT = 14.1327979
+const VENUE_LNG = 120.931508
+const VENUE_ADDRESS = '144 Daang Luma, Amadeo, Cavite'
+const DIRECTIONS = `https://www.google.com/maps/dir/?api=1&destination=${VENUE_LAT},${VENUE_LNG}`
+const WAZE = `https://www.waze.com/ul?ll=${VENUE_LAT},${VENUE_LNG}&navigate=yes`
+const VENUE_SHOTS = [
+  { src: '/venue.jpg', alt: "Ceremony aisle at Fruella's Events Venue Tagaytay" },
+]
+const DAY_PLAN = [
+  { t: '3:00 PM', iso: '2027-01-21T15:00:00+08:00', label: 'Guests arrive', mins: 15 * 60, icon: <I.users className="size-5" /> },
+  { t: '3:30 PM', iso: '2027-01-21T15:30:00+08:00', label: 'Ceremony', mins: 15 * 60 + 30, icon: <I.rings className="size-5" /> },
+  { t: '5:00 PM', iso: '2027-01-21T17:00:00+08:00', label: 'Cocktails & photos', mins: 17 * 60, icon: <I.cup className="size-5" /> },
+  { t: '6:30 PM', iso: '2027-01-21T18:30:00+08:00', label: 'Reception dinner', mins: 18 * 60 + 30, icon: <I.star className="size-5" /> },
+  { t: '8:30 PM', iso: '2027-01-21T20:30:00+08:00', label: 'Party', mins: 20 * 60 + 30, icon: <BrandHeart className="size-5" /> },
+  { t: '10:00 PM', iso: '2027-01-21T22:30:00+08:00', label: 'Send-off', mins: 22 * 60 + 30, icon: <I.arrow className="size-5" /> },
+]
+
+function manilaNow() {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date())
+  const g = (t: string) => Number(parts.find((p) => p.type === t)?.value)
+  return { y: g('year'), m: g('month'), d: g('day'), mins: g('hour') * 60 + g('minute') }
+}
+
+function daysUntilWedding() {
+  const n = manilaNow()
+  const start = Date.UTC(n.y, n.m - 1, n.d)
+  const end = Date.UTC(2027, 0, 21)
+  return Math.round((end - start) / 86400000)
+}
+
+function kmFrom(lat: number, lng: number) {
+  const r = 6371
+  const dLat = ((VENUE_LAT - lat) * Math.PI) / 180
+  const dLng = ((VENUE_LNG - lng) * Math.PI) / 180
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat * Math.PI) / 180) * Math.cos((VENUE_LAT * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
+  const km = r * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return km < 10 ? Math.round(km * 10) / 10 : Math.round(km)
+}
+
+function downloadIcs() {
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Nick and Rizelle//Wedding//EN',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VTIMEZONE',
+    'TZID:Asia/Manila',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:+0800',
+    'TZOFFSETTO:+0800',
+    'TZNAME:PST',
+    'DTSTART:19700101T000000',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    'UID:nick-rizelle-2027-01-21@wedding',
+    'DTSTAMP:20261008T000000Z',
+    'DTSTART;TZID=Asia/Manila:20270121T153000',
+    'DTEND;TZID=Asia/Manila:20270121T223000',
+    'SUMMARY:Nick & Rizelle wedding',
+    "LOCATION:Fruella's Events Venue Tagaytay\\, 144 Daang Luma\\, Amadeo\\, Cavite",
+    'DESCRIPTION:Ceremony and reception',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n')
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }))
+  a.download = 'nick-rizelle-wedding.ics'
+  a.click()
+  URL.revokeObjectURL(a.href)
 }
 
 function Day() {
+  const [copied, setCopied] = useState(false)
+  const [note, setNote] = useState<string | null>(null)
+  const [open, setOpen] = useState(false)
+  const [shot, setShot] = useState(0)
+  const [km, setKm] = useState<number | null>(null)
+  const now = manilaNow()
+  const days = daysUntilWedding()
+  const onDay = now.y === 2027 && now.m === 1 && now.d === 21
+  const current = onDay ? [...DAY_PLAN].reverse().find((s) => now.mins >= s.mins)?.label : null
+  useEffect(() => {
+    if (!navigator.permissions?.query) return
+    let stop = false
+    navigator.permissions.query({ name: 'geolocation' }).then((p) => {
+      if (stop || p.state !== 'granted') return
+      navigator.geolocation.getCurrentPosition((pos) => setKm(kmFrom(pos.coords.latitude, pos.coords.longitude)))
+    }).catch(() => {})
+    return () => { stop = true }
+  }, [])
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: { key: string }) => { if (e.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+  const copyAddress = async () => {
+    let ok = false
+    try {
+      await Promise.race([
+        navigator.clipboard.writeText(VENUE_ADDRESS),
+        new Promise((_, reject) => window.setTimeout(() => reject(new Error('slow')), 700)),
+      ])
+      ok = true
+    } catch {
+      try {
+        const ta = document.createElement('textarea')
+        ta.value = VENUE_ADDRESS
+        ta.setAttribute('readonly', '')
+        ta.style.position = 'fixed'
+        ta.style.left = '-9999px'
+        document.body.appendChild(ta)
+        ta.select()
+        ok = document.execCommand('copy')
+        ta.remove()
+      } catch { ok = false }
+    }
+    setCopied(ok)
+    setNote(ok ? 'Address copied' : 'Could not copy the address')
+    window.setTimeout(() => { setCopied(false); setNote(null) }, 1800)
+  }
   return (
-    <PromptCard id="day" answer="Two places, one long, happy day." className="mx-auto max-w-6xl">
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
-        <Venue kind="Ceremony" name="[Ceremony venue]" time="[Date] · 3:00 PM" img={img('1519741497674-611481863552', 300)} />
-        <Venue kind="Reception" name="[Reception venue]" time="[Date] · 6:00 PM" img={img('1464366400600-7168b8af9bc3', 300)} />
+    <PromptCard
+      id="day"
+      answer="One place for the whole day."
+      className="mx-auto max-w-6xl"
+      aside={<span className="inline-flex items-center rounded-full bg-white/80 px-3 py-1.5 text-[12px] font-medium text-ink ring-1 ring-black/5 backdrop-blur-xl">Ceremony & reception · same venue</span>}
+    >
+      <div className="mt-8 grid items-stretch gap-5 md:grid-cols-2">
+        <div className="anim-rise overflow-hidden rounded-[24px] bg-canvas">
+          <button type="button" aria-label="See the venue" onClick={() => { setShot(0); setOpen(true) }} className="relative block h-[180px] w-full cursor-pointer md:h-[150px] lg:h-[180px] transition active:scale-[.98]">
+            <img src={VENUE_SHOTS[0].src} alt="" className="size-full object-cover object-[center_40%]" />
+            <span className="absolute bottom-3 left-3 rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium text-ink backdrop-blur-xl">Tagaytay · cool weather, bring a light layer</span>
+          </button>
+          <div className="p-5 md:p-6">
+            <span className="inline-flex h-7 w-fit items-center rounded-full bg-violet px-3 text-[12px] font-medium text-white">Ceremony and reception</span>
+            <div className="mt-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:gap-4">
+              <p className="text-[76px] leading-none font-extrabold tracking-[-0.05em]">21</p>
+              <div className="sm:pb-1">
+                <p className="text-[20px] font-extrabold tracking-[-0.02em]">January 2027</p>
+                <p className="mt-1 text-[15px] text-mute"><time dateTime="2027-01-21T15:30:00+08:00">Ceremony starts at 3:30 PM</time></p>
+              </div>
+            </div>
+            <h3 className="mt-5 text-[22px] font-extrabold tracking-[-0.01em]">Fruella's Events Venue Tagaytay</h3>
+            <div className="mt-2 flex items-center gap-2">
+              <p className="flex items-center gap-1.5 text-[14px] text-mute"><Ico f="1f091.svg" />{VENUE_ADDRESS}</p>
+              <button type="button" aria-label={copied ? 'Address copied' : 'Copy address'} onClick={copyAddress} className="grid size-8 shrink-0 place-items-center rounded-full bg-well text-mute transition active:scale-[.88]">
+                {copied ? <I.check className="size-4" /> : (
+                  <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden>
+                    <rect x="9" y="9" width="11" height="11" rx="2" />
+                    <path d="M5 15V5a2 2 0 0 1 2-2h8" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            {note && <p className="anim-fade mt-2 text-[13px] font-medium text-violet" role="status">{note}</p>}
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button type="button" onClick={downloadIcs} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-white px-4 text-[14px] font-medium ring-1 ring-line transition hover:bg-well active:scale-[.88]">
+                <Ico f="34e83.svg" className="size-5" />Add to calendar
+              </button>
+              <a href={DIRECTIONS} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-full bg-white px-4 text-[14px] font-medium ring-1 ring-line transition hover:bg-well active:scale-[.88]">
+                <Ico f="e8857.svg" className="size-5" />Directions
+              </a>
+              <button type="button" onClick={() => { setShot(0); setOpen(true) }} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-violet px-4 text-[14px] font-medium text-white transition hover:bg-violet-deep active:scale-[.88]">
+                See the venue
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="anim-rise relative h-[260px] overflow-hidden rounded-[24px] bg-canvas md:h-full" style={{ animationDelay: '80ms' }}>
+          <iframe
+            title="Map of Fruella's Events Venue Tagaytay, 144 Daang Luma, Amadeo, Cavite"
+            className="pointer-events-none size-full grayscale-[.45]"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            src={`https://maps.google.com/maps?q=${VENUE_LAT},${VENUE_LNG}&z=17&output=embed`}
+          />
+          <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full">
+            <span aria-hidden className="absolute top-1/2 left-1/2 size-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet/30" style={{ animation: 'ringPulse 2.2s ease-out infinite' }} />
+            <span className="relative grid size-11 place-items-center rounded-full bg-violet text-white shadow-[0_8px_18px_rgba(124,93,219,.45)]" style={{ animation: 'markerDrop .7s cubic-bezier(.2,.8,.2,1) both' }}>
+              <BrandHeart className="size-5" hi="#E4DCF8" />
+            </span>
+          </div>
+          <p className="pointer-events-none absolute top-[58%] left-1/2 z-[1] max-w-[240px] -translate-x-1/2 rounded-full bg-white/80 px-3 py-1.5 text-center text-[12px] font-medium text-ink backdrop-blur-xl">
+            {km == null ? 'Tap Directions to plan your route' : `You're invited here 💜 · ${km} km from you`}
+          </p>
+          <div className="absolute right-3 bottom-3 z-[1] flex gap-2">
+            <a href={WAZE} target="_blank" rel="noreferrer" aria-label="Open in Waze" className="grid h-10 place-items-center rounded-full bg-white/80 px-3 text-[12px] font-medium text-ink backdrop-blur-xl transition active:scale-[.88]">Waze</a>
+            <a href={DIRECTIONS} target="_blank" rel="noreferrer" aria-label="Open in Google Maps" className="grid h-10 place-items-center rounded-full bg-white/80 px-3 text-[12px] font-medium text-ink backdrop-blur-xl transition active:scale-[.88]">Maps</a>
+          </div>
+        </div>
       </div>
+      <div className="anim-rise mt-5" style={{ animationDelay: '160ms' }}>
+        <div className="no-scrollbar -mx-2 overflow-x-auto px-2 snap-x snap-mandatory">
+          <div className="relative flex w-max items-center gap-3 pb-1">
+            <div aria-hidden className="absolute top-5 right-8 left-8 border-t border-dashed border-violet" />
+            {days > 0 && <p className="relative z-[1] shrink-0 rounded-full bg-canvas px-3 py-1.5 text-[13px] text-mute">Starts in {days} days</p>}
+            {DAY_PLAN.map((s, i) => {
+              const on = s.label === current
+              return (
+                <div key={s.label} className={cx('relative z-[1] flex min-w-[168px] snap-start items-center gap-2.5 rounded-[22px] px-3 py-2.5', on ? 'bg-violet text-white' : 'bg-canvas')} style={{ animation: `chipIn .45s ease ${i * 70}ms both` }}>
+                  <span className={cx('grid size-10 shrink-0 place-items-center rounded-full', on ? 'bg-white/20 text-white' : 'bg-well text-ink')}>{s.icon}</span>
+                  <span>
+                    <time dateTime={s.iso} className="block text-[13px] font-medium">{s.t}</time>
+                    <span className={cx('block text-[13px]', on ? 'text-white' : 'text-mute')}>{s.label}</span>
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {[
+          ['Parking', 'Free parking on site. [details placeholder]', <I.pin className="size-5" />],
+          ['From Manila', 'About 1.5-2 hrs via CAVITEX / Aguinaldo Hwy. Leave by [time].', <I.arrow className="size-5" />],
+          ['Weather', 'Tagaytay evenings get cool. Bring a shawl or jacket.', <I.sparkle className="size-5" />],
+        ].map(([title, line, icon]) => (
+          <article key={title as string} className="rounded-[22px] bg-white p-4 ring-1 ring-line">
+            <span className="grid size-10 place-items-center rounded-full bg-well text-violet">{icon as ReactNode}</span>
+            <h3 className="mt-3 text-[15px] font-medium">{title as string}</h3>
+            <p className="mt-1 text-[14px] leading-relaxed text-mute">{line as string}</p>
+          </article>
+        ))}
+      </div>
+      {open && (
+        <div className="anim-fade fixed inset-0 z-[70] grid place-items-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setOpen(false)} role="dialog" aria-modal aria-label="Venue photos">
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-[28px] bg-white" style={{ animation: 'lightboxIn .35s cubic-bezier(.2,.8,.2,1) both' }} onClick={(e) => e.stopPropagation()}>
+            <img src={VENUE_SHOTS[shot].src} alt={VENUE_SHOTS[shot].alt} className="max-h-[70vh] w-full object-contain bg-canvas" />
+            <div className="flex items-center justify-between gap-3 p-4">
+              <p className="text-[14px] text-mute">{VENUE_SHOTS[shot].alt}</p>
+              {VENUE_SHOTS.length > 1 && (
+              <div className="flex gap-2">
+                {VENUE_SHOTS.map((p, i) => (
+                  <button key={p.src + i} type="button" aria-label={`Venue photo ${i + 1}`} onClick={() => setShot(i)} className={cx('size-2.5 rounded-full', i === shot ? 'bg-violet' : 'bg-line')} />
+                ))}
+              </div>
+              )}
+            </div>
+            <button type="button" aria-label="Close venue photos" onClick={() => setOpen(false)} className="absolute top-4 right-4 grid size-10 place-items-center rounded-full bg-white/85 text-ink backdrop-blur-xl active:scale-[.88]">
+              <I.x className="size-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </PromptCard>
   )
 }
 
 const SWATCHES = {
   guests: {
-    colors: [['#9caf88', 'Sage'], ['#d8a7a0', 'Dusty rose'], ['#e9d8b4', 'Champagne'], ['#a89584', 'Taupe'], ['#2f3e5c', 'Navy']],
-    notes: ['Semi-formal: dresses, suits, or barong.', 'Please avoid white and ivory — those are for the bride.', 'Comfortable shoes for the garden reception.'],
+    colors: [['#EEDDFF', 'Lilac'], ['#DCCEFF', 'Lavender'], ['#AED0FE', 'Periwinkle'], ['#BCE1FE', 'Powder blue'], ['#CDF1FF', 'Sky blue']],
+    notes: ['Semi-formal or casual that fits a garden setting, in these colors.', 'Black is not allowed.', 'Please avoid white and any shade of white. Those are for the bride.'],
   },
-  sponsors: {
-    colors: [['#e9d8b4', 'Champagne'], ['#c9b8a6', 'Oat'], ['#f4efe6', 'Cream'], ['#7d6b5d', 'Mocha']],
-    notes: ['Ladies: floor-length gown in champagne or oat.', 'Gentlemen: barong tagalog or a cream suit, dark trousers.', 'Final fitting details will be sent by [coordinator].'],
+  ninangs: {
+    colors: [['#C9D9E6', 'Silver'], ['#B5CFE0', 'Pale dusty blue'], ['#97B9D2', 'Dusty blue'], ['#8FABC0', 'Slate blue'], ['#96A6B3', 'Silver gray']],
+    notes: ['Ninangs: a long dress in dusty blue, silver, or gray.', 'Black is not allowed.', 'Please avoid white and any shade of white. Those are for the bride.'],
+  },
+  ninongs: {
+    colors: [['#DDDDDD', 'Light gray'], ['#516C8D', 'Steel blue'], ['#304163', 'Navy'], ['#28385E', 'Deep navy']],
+    notes: ['Ninongs: a gray or navy suit and tie.', 'Black is not allowed.', 'Please avoid white and any shade of white. Those are for the bride.'],
   },
 } as const
 
 function Attire() {
-  const [tab, setTab] = useState<'guests' | 'sponsors'>('guests')
+  const [tab, setTab] = useState<keyof typeof SWATCHES>('guests')
   const s = SWATCHES[tab]
   return (
-    <PromptCard id="attire" answer="Soft earth tones, garden-party easy." className="mx-auto max-w-6xl">
-      <div className="mt-6 flex gap-2">
+    <PromptCard id="attire" answer="Soft lilac and blue." className="mx-auto max-w-6xl">
+      <div className="mt-6 flex flex-wrap gap-2">
         <Pill active={tab === 'guests'} onClick={() => setTab('guests')}>Guests</Pill>
-        <Pill active={tab === 'sponsors'} onClick={() => setTab('sponsors')}>Sponsors</Pill>
+        <Pill active={tab === 'ninangs'} onClick={() => setTab('ninangs')}>Ninangs</Pill>
+        <Pill active={tab === 'ninongs'} onClick={() => setTab('ninongs')}>Ninongs</Pill>
       </div>
       <div key={tab} className="anim-fade mt-8 grid gap-8 md:grid-cols-2">
         <div className="flex flex-wrap gap-5">
@@ -639,35 +1117,212 @@ function Attire() {
   )
 }
 
-const PARTY: { id: string; label: string; icon: ReactNode; people: [string, string][] }[] = [
-  { id: 'couple', label: 'Couple', icon: <MaskIco f="bb73e.png" />, people: [['Nick [Surname]', 'Groom'], ['Rizelle [Surname]', 'Bride']] },
-  { id: 'parents', label: 'Parents', icon: <MaskIco f="63cfb.png" />, people: [["[Groom's father]", 'Father of the groom'], ["[Groom's mother]", 'Mother of the groom'], ["[Bride's father]", 'Father of the bride'], ["[Bride's mother]", 'Mother of the bride']] },
-  { id: 'principal', label: 'Principal', icon: <MaskIco f="f3d9b.png" />, people: [['[Sponsor name]', 'Principal sponsor'], ['[Sponsor name]', 'Principal sponsor'], ['[Sponsor name]', 'Principal sponsor'], ['[Sponsor name]', 'Principal sponsor']] },
-  { id: 'secondary', label: 'Secondary', icon: <MaskIco f="f5390.png" />, people: [['[Name]', 'Candle'], ['[Name]', 'Veil'], ['[Name]', 'Cord']] },
-  { id: 'party', label: 'Wedding party', icon: <MaskIco f="d7d7b.svg" className="h-[23px] w-[25px]" />, people: [['[Name]', 'Best man'], ['[Name]', 'Maid of honor'], ['[Name]', 'Groomsman'], ['[Name]', 'Bridesmaid']] },
-  { id: 'little', label: 'Little ones', icon: <MaskIco f="3a1aa.png" />, people: [['[Name]', 'Ring bearer'], ['[Name]', 'Coin bearer'], ['[Name]', 'Flower girl']] },
+type Guest = { name: string; role: string; photo?: string; alone?: boolean }
+const guest = (name: string, role: string, extra?: Pick<Guest, 'photo' | 'alone'>): Guest => ({ name, role, ...extra })
+
+const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] = [
+  { id: 'couple', label: 'Couple', icon: <MaskIco f="bb73e.png" />, people: [guest('Dionnel Niko Miguel', 'Groom', { photo: '/nick.png' }), guest('Rizelle Gonzaga Lopez', 'Bride', { photo: '/rizelle.png' })] },
+  { id: 'parents', label: 'Parents', icon: <MaskIco f="63cfb.png" />, people: [guest('Dionisio M. Miguel', 'Father of the groom'), guest('Elsie A. Miguel', 'Mother of the groom'), guest('Emeterio F. Lopez', 'Father of the bride'), guest('Rizalminda G. Lopez', 'Mother of the bride')] },
+  { id: 'principal', label: 'Principal', icon: <MaskIco f="f3d9b.png" />, people: [
+    guest('Mr. Bernard Sahagun', 'Ninong'), guest('Mrs. Elizabeth Sahagun', 'Ninang'),
+    guest('Mr. Jimmy Almiranes', 'Ninong'), guest('Mrs. Jeannette Almiranes', 'Ninang'),
+    guest('Mr. Rodrigo Mendoza', 'Ninong'), guest('Mrs. Marilou Mendoza', 'Ninang'),
+    guest('Mr. Dean Pacasio', 'Ninong'), guest('Mrs. Rebecca Pacasio', 'Ninang'),
+    guest('Mr. Manayon Pascual', 'Ninong'), guest('Mrs. Precy Castillo', 'Ninang'),
+    guest('Mr. Henry Amora', 'Ninong'), guest('Mrs. Angela Amora', 'Ninang'),
+    guest('Mr. Macario Dimailig', 'Ninong'), guest('Mrs. Estela Dimailig', 'Ninang'),
+    guest('Mr. Gary Goldsmith', 'Ninong'), guest('Mrs. Arlene Goldsmith', 'Ninang'),
+    guest('Mr. Rey Sison', 'Ninong'), guest('Mrs. Marieshield Datahan', 'Ninang'),
+    guest('For. Editha Eusebio', 'Ninang'),
+    guest('Ptr. Arvin Martin', 'Wedding officiant', { alone: true }),
+  ] },
+  { id: 'secondary', label: 'Secondary', icon: <MaskIco f="f5390.png" />, people: [
+    guest('Richard Damian', 'Candle'), guest('Marela Laarni Holgado', 'Candle'),
+    guest('Edriane Joelle Agorilla', 'Veil'), guest('Jennylene Lopez', 'Veil'),
+    guest('John Edrian Marasigan', 'Cord'), guest('Erika Grace Banuelos', 'Cord'),
+  ] },
+  { id: 'party', label: 'Wedding party', icon: <MaskIco f="d7d7b.svg" className="h-[23px] w-[25px]" />, people: [
+    guest('Jan Angela Reveral', 'Matron of honor'), guest('Dulce Amor Laroza', 'Maid of honor'),
+    guest('Jose Maisa III', 'Best man'), guest('Jomer Flores', 'Best man'),
+    guest('Ronnel Lopez', 'Groomsman'), guest('Katrina Miguel', 'Bridesmaid'),
+    guest('Jhuvert Magnayi', 'Groomsman'), guest('Mary Jane Lopez', 'Bridesmaid'),
+    guest('Jonald Delos Santos', 'Groomsman'), guest('Sophia Lopez', 'Bridesmaid'),
+    guest('Neil Darien Bañez', 'Groomsman'), guest('Jennifer Lopez', 'Bridesmaid'),
+    guest('Ranjiel Lopez', 'Coin bearer'), guest('Diosel Ariane Miguel', 'Coin bearer'),
+  ] },
+  { id: 'little', label: 'Little ones', icon: <MaskIco f="3a1aa.png" />, people: [
+    guest('John Benedict Lopez, Jr.', 'Ring bearer'),
+    guest('Reagan James Reveral', 'Bible bearer'),
+    guest('Lia Mirelle Sahagun', 'Flower girl'), guest('Maria Ayesha Lopez', 'Flower girl'),
+    guest('Karisha Jayne Erilla', 'Flower girl'), guest('Marxia Duran', 'Flower girl'),
+  ] },
 ]
+
+const AVATAR_TINTS = ['#F6F4FD', '#FDF1F4', '#EEF6F1', '#FFF6E8', '#EEF3FB']
+const HONOR_ROLES = new Set(['Matron of honor', 'Maid of honor', 'Best man'])
+const BRIDE_SIDE = new Set(['Matron of honor', 'Maid of honor', 'Bridesmaid'])
+const NICK_SIDE = new Set(['Best man', 'Groomsman'])
+
+function partyInitial(name: string) {
+  const rest = name.replace(/^(Mr\.|Mrs\.|Ms\.|Miss|Master|For\.|Ptr\.)\s+/i, '')
+  return rest.replace(/[^A-Za-z]/g, '')[0] || '•'
+}
+
+function avatarTint(name: string) {
+  let h = 0
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  return AVATAR_TINTS[h % AVATAR_TINTS.length]
+}
+
+const FEMALE_GIVEN = new Set(['marela', 'jennylene', 'erika', 'dulce', 'katrina', 'sophia', 'sofia', 'sofie', 'jennifer', 'lia', 'maria', 'karisha', 'marxia', 'ariane', 'andrea', 'anne', 'anna', 'angela', 'marie', 'mary', 'grace', 'rose', 'joy', 'jane', 'jessica', 'michelle', 'nicole', 'patricia', 'catherine', 'christine', 'diana', 'elena', 'ella', 'emma', 'hannah', 'isabel', 'julia', 'karen', 'kathleen', 'kristine', 'louise', 'luz', 'melissa', 'monica', 'natalie', 'olivia', 'paula', 'rachel', 'regina', 'rina', 'rochelle', 'ruth', 'sandra', 'sarah', 'stephanie', 'teresa', 'theresa', 'valerie', 'vanessa', 'victoria'])
+const FEMALE_HAIR = ['variant02', 'variant04', 'variant08', 'variant10', 'variant23', 'variant28', 'variant36', 'variant37', 'variant39', 'variant41', 'variant43', 'variant45', 'variant46', 'variant47', 'variant57', 'variant58', 'variant63']
+const MALE_HAIR = ['variant01', 'variant06', 'variant07', 'variant15', 'variant17', 'variant24', 'variant44', 'variant60']
+
+function avatarGender(name: string, role: string): 'f' | 'm' {
+  if (/^(mrs|ms|miss)\b/i.test(name)) return 'f'
+  if (/^(mr|ptr|master)\b/i.test(name)) return 'm'
+  if (/ninang|mother|bride|matron|maid of honor|bridesmaid|flower girl/i.test(role)) return 'f'
+  if (/ninong|father|groom|best man|groomsman|ring bearer|bible bearer/i.test(role)) return 'm'
+  const given = name.replace(/^(For\.)\s+/i, '').split(/[\s,]+/)[0].toLowerCase()
+  if (FEMALE_GIVEN.has(given)) return 'f'
+  return 'm'
+}
+
+function dicebear(name: string, role: string, young: boolean, tint: string) {
+  const q = new URLSearchParams({ seed: name, size: '128', radius: '50', backgroundColor: tint.slice(1) })
+  const female = avatarGender(name, role) === 'f'
+  q.set('beardProbability', female || young ? '0' : '40')
+  for (const hair of female ? FEMALE_HAIR : MALE_HAIR) q.append('hairVariant', hair)
+  if (young) {
+    q.set('glassesProbability', '0')
+    q.set('gestureProbability', '0')
+    q.set('scale', '1.2')
+  }
+  return `https://api.dicebear.com/10.x/notionists/svg?${q}`
+}
+
+function honorFirst(people: Guest[]) {
+  return people.map((p, i) => ({ p, i })).sort((a, b) => (HONOR_ROLES.has(a.p.role) ? 0 : 1) - (HONOR_ROLES.has(b.p.role) ? 0 : 1) || a.i - b.i).map((x) => x.p)
+}
+
+function GuestFace({ name, className }: { name: string; className?: string }) {
+  const [failed, setFailed] = useState(false)
+  const tint = avatarTint(name)
+  const src = failed ? '' : dicebear(name, '', false, tint)
+  return (
+    <span className={cx('grid shrink-0 place-items-center overflow-hidden rounded-full', className)} style={{ background: tint }}>
+      {src ? (
+        <img src={src} alt="" className="size-full object-cover" onError={() => setFailed(true)} />
+      ) : (
+        <span className="text-[12px] font-extrabold text-violet">{partyInitial(name)}</span>
+      )}
+    </span>
+  )
+}
+
+function PersonAvatar({ name, role, photo, young, stack }: { name: string; role: string; photo?: string; young?: boolean; stack?: boolean }) {
+  const [failed, setFailed] = useState(false)
+  const tint = avatarTint(name)
+  const src = failed ? '' : photo || dicebear(name, role, !!young, tint)
+  return (
+    <span className={cx('relative shrink-0', stack && 'ring-2 ring-white')}>
+      <span className={cx('party-avatar grid place-items-center overflow-hidden rounded-full text-[14px] font-extrabold text-violet', stack ? 'size-8' : 'size-12 sm:size-14', photo && 'ring-2 ring-violet')} style={{ background: tint }}>
+        {src ? (
+          <img src={src} alt={`Avatar of ${name}`} className="size-full object-cover" onError={() => setFailed(true)} />
+        ) : (
+          <span aria-label={`Avatar of ${name}`}>{partyInitial(name)}</span>
+        )}
+      </span>
+      {photo && !stack && (
+        <span className="absolute -right-0.5 -bottom-0.5 grid size-5 place-items-center rounded-full bg-violet text-white ring-2 ring-white">
+          <BrandHeart className="size-3" hi="#E4DCF8" />
+        </span>
+      )}
+    </span>
+  )
+}
+
+function PersonCard({ person, young, delay }: { person: Guest; young: boolean; delay: number }) {
+  return (
+    <div className={cx('party-card party-rise flex items-center gap-3 rounded-[20px] bg-white p-2.5 sm:p-3', person.alone && 'md:col-start-1')} style={{ animationDelay: `${delay}ms` }}>
+      <PersonAvatar name={person.name} role={person.role} photo={person.photo} young={young} />
+      <div className="min-w-0">
+        <p className="text-[15px] leading-tight font-extrabold break-words">{person.name}</p>
+        <span className={cx('mt-1 inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-medium', HONOR_ROLES.has(person.role) ? 'bg-violet text-white' : 'bg-canvas text-mute')}>{person.role}</span>
+      </div>
+    </div>
+  )
+}
 
 function Party() {
   const [g, setG] = useState(0)
-  const grp = PARTY[g]
+  const [shown, setShown] = useState(0)
+  const [on, setOn] = useState(true)
+  const wait = useRef(0)
+  const grp = PARTY[shown]
+  const young = grp.id === 'little'
+  const people = honorFirst(grp.people)
+  const sided = people.some((p) => BRIDE_SIDE.has(p.role) || NICK_SIDE.has(p.role))
+  const bride = people.filter((p) => BRIDE_SIDE.has(p.role))
+  const nick = people.filter((p) => NICK_SIDE.has(p.role))
+  const shared = people.filter((p) => !BRIDE_SIDE.has(p.role) && !NICK_SIDE.has(p.role))
+  const preview = sided ? [...bride, ...nick, ...shared] : people
+  const pick = (i: number) => {
+    if (i === g) return
+    setG(i)
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) {
+      setShown(i)
+      setOn(true)
+      return
+    }
+    setOn(false)
+    clearTimeout(wait.current)
+    wait.current = window.setTimeout(() => { setShown(i); setOn(true) }, 180)
+  }
+  const onTabKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
+    const last = PARTY.length - 1
+    let next: number | null = null
+    if (e.key === 'ArrowRight') next = i === last ? 0 : i + 1
+    else if (e.key === 'ArrowLeft') next = i === 0 ? last : i - 1
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = last
+    if (next == null) return
+    e.preventDefault()
+    pick(next)
+    document.getElementById(`party-tab-${PARTY[next].id}`)?.focus()
+  }
+  let n = 0
+  const card = (person: Guest) => <PersonCard key={person.name + person.role} person={person} young={young} delay={(n++) * 40} />
   return (
     <PromptCard id="party" answer="The people who got us here." className="mx-auto max-w-6xl">
-      <div className="no-scrollbar mt-6 -mx-2 flex gap-1 overflow-x-auto px-2 pb-1">
+      <div role="tablist" aria-label="Our people" className="no-scrollbar mt-5 -mx-2 flex snap-x snap-mandatory gap-1 overflow-x-auto px-2 pt-3 pb-1">
         {PARTY.map((p, i) => (
-          <IconWell key={p.id} icon={p.icon} label={p.label} active={g === i} onClick={() => setG(i)} />
+          <IconWell key={p.id} icon={p.icon} label={p.label} count={p.people.length} active={g === i} onClick={() => pick(i)} tabId={`party-tab-${p.id}`} panelId="party-panel" tabIndex={g === i ? 0 : -1} onKeyDown={(e) => onTabKey(e, i)} />
         ))}
       </div>
-      <div key={grp.id} className="anim-fade mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {grp.people.map(([n, r], i) => (
-          <div key={i} className="anim-rise flex items-center gap-3 rounded-[20px] bg-white p-3 ring-1 ring-line" style={{ animationDelay: `${i * 60}ms` }}>
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-well text-[16px] font-extrabold text-violet">{n.replace(/[^A-Za-z]/g, '')[0] || '•'}</span>
-            <div className="min-w-0">
-              <p className="truncate text-[15px] font-extrabold">{n}</p>
-              <p className="text-[13px] text-mute">{r}</p>
+      <div className="mt-5 flex items-center gap-3">
+        <div className="flex -space-x-2">
+          {preview.slice(0, 5).map((p) => <PersonAvatar key={p.name} name={p.name} role={p.role} photo={p.photo} young={young} stack />)}
+        </div>
+        {preview.length > 5 && <span className="text-[13px] text-mute">+{preview.length - 5} more</span>}
+      </div>
+      <div id="party-panel" role="tabpanel" aria-labelledby={`party-tab-${grp.id}`} key={grp.id} className={cx('party-panel mt-4', !on && 'opacity-0')}>
+        {sided ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="mb-2 text-[12px] font-medium text-mute">Rizelle's side</p>
+              <div className="grid gap-3">{bride.map(card)}</div>
             </div>
+            <div>
+              <p className="mb-2 text-[12px] font-medium text-mute">Nick's side</p>
+              <div className="grid gap-3">{nick.map(card)}</div>
+            </div>
+            {shared.length > 0 && <div className="grid gap-3 md:col-span-2 md:grid-cols-2">{shared.map(card)}</div>}
           </div>
-        ))}
+        ) : (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">{people.map(card)}</div>
+        )}
       </div>
     </PromptCard>
   )
@@ -804,12 +1459,43 @@ function Gift() {
 }
 
 /* ───────────────────────── 12. Reply — liking them back ───────────────────────── */
-type Wish = { name: string; text: string; when: string }
+type Wish = { name: string; text: string; when: string; mine?: boolean }
 const SEED: Wish[] = [
-  { name: '[Guest name]', text: 'Swiped right on this invite immediately. So happy for you two!', when: '2d' },
-  { name: '[Guest name]', text: 'From a Dating chat to forever. See you there 💜', when: '4d' },
-  { name: '[Guest name]', text: 'Already practicing my dance moves.', when: '1w' },
+  { name: 'Andrea Cruz', text: 'Swiped right on this invite immediately. So happy for you two!', when: '2d' },
+  { name: 'Miguel Santos', text: 'From a Dating chat to forever. See you there 💜', when: '4d' },
+  { name: 'Sofia Reyes', text: 'Already practicing my dance moves.', when: '1w' },
 ]
+const isSeed = (w: Wish) => w.name === '[Guest name]' || SEED.some((s) => s.name === w.name && s.text === w.text)
+function whenLabel(iso: string) {
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000)
+  if (!Number.isFinite(mins) || mins < 60) return 'now'
+  const hours = Math.round(mins / 60)
+  if (hours < 24) return `${hours}h`
+  const days = Math.round(hours / 24)
+  if (days < 7) return `${days}d`
+  return `${Math.round(days / 7)}w`
+}
+function mergeWishes(rows: { name: string; message: string; updatedAt: string }[], mineName?: string): Wish[] {
+  const mine = mineName?.trim().toLowerCase()
+  const shared = rows
+    .filter((row) => row.message.trim())
+    .map((row) => ({
+      name: row.name,
+      text: row.message,
+      when: whenLabel(row.updatedAt),
+      mine: !!mine && row.name.trim().toLowerCase() === mine,
+    }))
+  return [...shared, ...SEED]
+}
+function loadWishes(): Wish[] {
+  const saved = JSON.parse(localStorage.getItem('nr-wishes') || 'null') as Wish[] | null
+  if (!saved) return SEED
+  const mine = saved.find((w) => w.mine && !isSeed(w)) || saved.find((w) => !isSeed(w))
+  const next = mine ? [{ ...mine, mine: true }, ...SEED] : SEED
+  const list = next.length ? next : SEED
+  localStorage.setItem('nr-wishes', JSON.stringify(list))
+  return list
+}
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -823,32 +1509,76 @@ const inputCls = 'h-12 w-full rounded-[16px] bg-canvas px-4 text-[15px] outline-
 
 function Reply() {
   const { rsvp, setRsvp } = useLikes()
+  const [editing, setEditing] = useState(false)
   const [f, setF] = useState({ name: '', email: '', mobile: '', msg: '' })
   const [accept, setAccept] = useState<boolean | null>(null)
   const [seats, setSeats] = useState(1)
   const [err, setErr] = useState('')
-  const [wishes, setWishes] = useState<Wish[]>(() => JSON.parse(localStorage.getItem('nr-wishes') || 'null') || SEED)
+  const [saving, setSaving] = useState(false)
+  const [wishes, setWishes] = useState<Wish[]>(loadWishes)
   const [sheet, setSheet] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const ref = useReveal<HTMLElement>()
 
-  const submit = (e: FormEvent) => {
+  useEffect(() => {
+    let gone = false
+    const load = async () => {
+      const stamp = rsvp?.email ? `${rsvp.email}|${rsvp.name}|${rsvp.accept}|${rsvp.seats}|${rsvp.msg || ''}` : ''
+      if (stamp && rsvp?.mobile && localStorage.getItem('nr-rsvp-synced') !== stamp) {
+        const saved = await fetch('/api/rsvps', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: rsvp.name, email: rsvp.email, mobile: rsvp.mobile, accept: rsvp.accept, seats: rsvp.seats, message: rsvp.msg || '' }),
+        })
+        if (saved.ok) localStorage.setItem('nr-rsvp-synced', stamp)
+      }
+      const rows = await fetch('/api/rsvps').then((r) => r.json())
+      if (!gone && Array.isArray(rows)) setWishes(mergeWishes(rows, rsvp?.name))
+    }
+    void load().catch(() => {})
+    return () => { gone = true }
+  }, [rsvp])
+
+  const startEdit = () => {
+    if (!rsvp) return
+    setF({ name: rsvp.name, email: rsvp.email || '', mobile: rsvp.mobile || '', msg: rsvp.msg || wishes.find((w) => w.mine)?.text || '' })
+    setAccept(rsvp.accept)
+    setSeats(rsvp.seats || 1)
+    setErr('')
+    setEditing(true)
+  }
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!f.name.trim() || !/\S+@\S+\.\S+/.test(f.email)) return setErr('Add your name and a valid email.')
+    if (!f.name.trim()) return setErr('Add your full name.')
+    if (!/\S+@\S+\.\S+/.test(f.email)) return setErr('Add a valid email.')
+    if (f.mobile.replace(/\D/g, '').length < 10) return setErr('Add your mobile number.')
     if (accept === null) return setErr('Tap the heart or the X to reply.')
     setErr('')
-    if (accept) {
+    const first = !rsvp
+    if (accept && first) {
       const btn = (e.nativeEvent as SubmitEvent).submitter
       if (btn instanceof HTMLElement) dropFrom(btn, 18)
     }
-    const r = { accept, name: f.name, seats: accept ? seats : 0, ticket: `NR-${Math.floor(100 + Math.random() * 900)}` }
-    setRsvp(r)
-    if (f.msg.trim()) {
-      const w = [{ name: f.name, text: f.msg.trim(), when: 'now' }, ...wishes]
-      setWishes(w)
-      localStorage.setItem('nr-wishes', JSON.stringify(w))
+    const msg = f.msg.trim()
+    setSaving(true)
+    try {
+      const res = await fetch('/api/rsvps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: f.name.trim(), email: f.email.trim(), mobile: f.mobile.trim(), accept, seats: accept ? seats : 0, message: msg }),
+      })
+      const data = await res.json()
+      if (!res.ok) return setErr(data.error || 'Could not save your reply. Try again.')
+      setRsvp(data)
+      localStorage.setItem('nr-rsvp-synced', `${data.email}|${data.name}|${data.accept}|${data.seats}|${data.msg || ''}`)
+      setEditing(false)
+      if (first) setTimeout(() => setSheet(true), 400)
+    } catch {
+      setErr('Could not save your reply. Try again.')
+    } finally {
+      setSaving(false)
     }
-    setTimeout(() => setSheet(true), 400)
   }
 
   return (
@@ -859,7 +1589,7 @@ function Reply() {
           <h2 className="mt-1.5 text-[34px] leading-[1.05] font-extrabold tracking-[-0.025em] md:text-[44px]">Like them back?</h2>
           <p className="mt-2 text-[15px] text-mute">It's only a match when you reply. Kindly respond by [RSVP deadline].</p>
 
-          {rsvp ? (
+          {rsvp && !editing ? (
             <div className="anim-rise mt-8 rounded-[22px] bg-well p-5">
               <p className="text-[18px] font-extrabold">{rsvp.accept ? "It's a match 💜" : "We'll save you a slice."}</p>
               <p className="mt-1 text-[14px] text-mute">
@@ -867,15 +1597,15 @@ function Reply() {
               </p>
               <div className="mt-4 flex gap-2">
                 <Pill active onClick={() => setSheet(true)}>View match</Pill>
-                <Pill onClick={() => setRsvp(null)}>Change reply</Pill>
+                <Pill onClick={startEdit}>Change reply</Pill>
               </div>
             </div>
           ) : (
             <form onSubmit={submit} className="mt-8 space-y-4">
-              <Field label="Full name"><input className={inputCls} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="[Your name]" /></Field>
+              <Field label="Full name"><input required className={inputCls} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="[Your name]" /></Field>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Email"><input type="email" className={inputCls} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} placeholder="you@email.com" /></Field>
-                <Field label="Mobile"><input type="tel" className={inputCls} value={f.mobile} onChange={(e) => setF({ ...f, mobile: e.target.value })} placeholder="+63 9XX XXX XXXX" /></Field>
+                <Field label="Email"><input required type="email" className={inputCls} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} placeholder="you@email.com" /></Field>
+                <Field label="Mobile"><input required type="tel" className={inputCls} value={f.mobile} onChange={(e) => setF({ ...f, mobile: e.target.value })} placeholder="+63 9XX XXX XXXX" /></Field>
               </div>
 
               <div className="flex items-center justify-center gap-10 rounded-[22px] bg-canvas py-6">
@@ -906,9 +1636,14 @@ function Reply() {
                 <textarea rows={3} className={cx(inputCls, 'h-auto py-3')} value={f.msg} onChange={(e) => setF({ ...f, msg: e.target.value })} placeholder="Say something sweet…" />
               </Field>
               {err && <p className="anim-fade text-[13px] font-medium text-[#e41e3f]">{err}</p>}
-              <button type="submit" className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-violet text-[16px] font-medium text-white transition hover:bg-violet-deep active:scale-[.98]">
-                <BrandHeart className="size-5" />Confirm reply
+              <button type="submit" disabled={saving} className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-violet text-[16px] font-medium text-white transition hover:bg-violet-deep active:scale-[.98] disabled:opacity-70">
+                <BrandHeart className="size-5" />{saving ? 'Saving…' : editing ? 'Update reply' : 'Confirm reply'}
               </button>
+              {editing && (
+                <button type="button" onClick={() => setEditing(false)} className="h-11 w-full rounded-full text-[14px] font-medium text-mute">
+                  Cancel
+                </button>
+              )}
             </form>
           )}
         </div>
@@ -922,12 +1657,12 @@ function Reply() {
           <div className={cx('relative', !expanded && 'h-[300px]')}>
             {wishes.slice(0, expanded ? undefined : 4).map((w, i) => (
               <div
-                key={`${w.name}-${w.text}-${i}`}
+                key={w.mine ? 'mine' : `${w.name}-${w.text}`}
                 onClick={() => setExpanded(true)}
                 className={cx('anim-rise flex gap-3 rounded-[22px] bg-white p-4 shadow-[0_4px_20px_rgba(0,0,0,.06)] transition-all duration-500', expanded ? 'mb-3' : 'absolute inset-x-0 cursor-pointer')}
                 style={expanded ? undefined : { top: i * 26, transform: `scale(${1 - i * 0.04})`, zIndex: 10 - i, opacity: 1 - i * 0.15 }}
               >
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-well text-[14px] font-extrabold text-violet">{w.name.replace(/[^A-Za-z]/g, '')[0] || 'G'}</span>
+                <GuestFace name={w.name} className="size-10" />
                 <div className="min-w-0">
                   <p className="text-[14px]"><b className="font-extrabold">{w.name}</b> <span className="text-mute">· {w.when}</span></p>
                   <p className="mt-0.5 text-[15px] leading-snug">{w.text}</p>
@@ -1029,44 +1764,6 @@ function Toast() {
 /* ───────────────────────── song ───────────────────────── */
 const SONG_SRC = '/fallen.mp3'
 
-function MusicBar({ audioRef, playing, onToggle }: { audioRef: { current: HTMLAudioElement | null }; playing: boolean; onToggle: () => void }) {
-  const [ratio, setRatio] = useState(0)
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-    const tick = () => setRatio(audio.duration ? audio.currentTime / audio.duration : 0)
-    audio.addEventListener('timeupdate', tick)
-    return () => audio.removeEventListener('timeupdate', tick)
-  }, [audioRef])
-  const seek = (e: MouseEvent<HTMLButtonElement>) => {
-    const audio = audioRef.current
-    if (!audio?.duration) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    audio.currentTime = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)) * audio.duration
-  }
-  return (
-    <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 md:justify-end md:px-6">
-      <div className="w-full max-w-md rounded-[22px] bg-ink px-3 py-2.5 text-white shadow-xl">
-        <div className="flex items-center gap-3">
-          <img src="/fallen.webp" alt="" className={cx('disc size-10 shrink-0 rounded-full object-cover', playing && 'on')} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[14px] leading-tight font-extrabold">Fallen</p>
-            <p className="truncate text-[12px] text-white/60">Lola Amour</p>
-          </div>
-          <button type="button" onClick={onToggle} aria-label={playing ? 'Pause music' : 'Play music'} className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-ink transition active:scale-95">
-            {playing
-              ? <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden><path d="M7 5h3.2v14H7zM13.8 5H17v14h-3.2z" /></svg>
-              : <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>}
-          </button>
-        </div>
-        <button type="button" aria-label="Song progress" onClick={seek} className="mt-2 block h-1 w-full overflow-hidden rounded-full bg-white/20">
-          <span className="block h-full rounded-full bg-violet" style={{ width: `${ratio * 100}%` }} />
-        </button>
-      </div>
-    </div>
-  )
-}
-
 /* ───────────────────────── App ───────────────────────── */
 export default function App() {
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -1094,8 +1791,8 @@ export default function App() {
       {!opened && <Entrance onOpen={() => setOpened(true)} onStart={startSong} />}
       {opened && (
         <>
-          <PillBar />
-          <main className="space-y-10 px-4 pb-16 md:space-y-14">
+          <NavBar audioRef={audioRef} playing={playing} onToggle={toggleSong} />
+          <main className="space-y-10 px-4 pb-28 md:space-y-14 md:pb-16">
             <Hero />
             <Quote />
             <Story />
@@ -1108,7 +1805,6 @@ export default function App() {
             <Reply />
           </main>
           <Closing />
-          <MusicBar audioRef={audioRef} playing={playing} onToggle={toggleSong} />
           <Toast />
         </>
       )}
