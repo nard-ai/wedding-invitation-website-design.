@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react'
 
 /* ───────────────────────── placeholders ───────────────────────── */
 const WEDDING_DATE = new Date('2027-02-14T15:00:00') // [DATE PLACEHOLDER]
@@ -99,6 +99,58 @@ export const PROMPTS: Record<string, string> = {
 }
 const TOTAL = Object.keys(PROMPTS).length
 
+const LOVE = ['❤️', '💕', '💗', '💖', '💘']
+type HeartDrop = { id: number; x: number; y: number; dx: number; rot: number; delay: number; size: number; fall: number; emoji: string }
+let heartSeq = 0
+function dropHearts(x: number, y: number, count = 7) {
+  const wide = count > 10
+  const hearts: HeartDrop[] = Array.from({ length: count }, () => ({
+    id: ++heartSeq,
+    x,
+    y,
+    dx: (Math.random() - 0.5) * (wide ? 200 : 90),
+    rot: (Math.random() - 0.5) * 50,
+    delay: Math.random() * (wide ? 0.28 : 0.16),
+    size: wide ? 22 + Math.random() * 16 : 16 + Math.random() * 12,
+    fall: wide ? 190 + Math.random() * 70 : 90 + Math.random() * 50,
+    emoji: LOVE[Math.floor(Math.random() * LOVE.length)],
+  }))
+  window.dispatchEvent(new CustomEvent('nr-hearts', { detail: hearts }))
+}
+function dropFrom(el: HTMLElement, count = 7) {
+  const r = el.getBoundingClientRect()
+  dropHearts(r.left + r.width / 2, r.top + r.height / 2, count)
+}
+
+function HeartRain() {
+  const [items, setItems] = useState<HeartDrop[]>([])
+  useEffect(() => {
+    const on = (e: Event) => {
+      const next = (e as CustomEvent<HeartDrop[]>).detail
+      setItems((cur) => [...cur, ...next])
+      window.setTimeout(() => {
+        const ids = new Set(next.map((h) => h.id))
+        setItems((cur) => cur.filter((h) => !ids.has(h.id)))
+      }, 1900)
+    }
+    window.addEventListener('nr-hearts', on)
+    return () => window.removeEventListener('nr-hearts', on)
+  }, [])
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[80] overflow-hidden" aria-hidden>
+      {items.map((h) => (
+        <span
+          key={h.id}
+          className="heart-drop absolute"
+          style={{ left: h.x, top: h.y, fontSize: h.size, animationDelay: `${h.delay}s`, ['--dx' as string]: `${h.dx}px`, ['--rot' as string]: `${h.rot}deg`, ['--fall' as string]: `${h.fall}px` }}
+        >
+          {h.emoji}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 function LikesProvider({ children }: { children: ReactNode }) {
   const [liked, setLiked] = useState<Set<string>>(() => new Set(JSON.parse(localStorage.getItem('nr-liked') || '[]')))
   const [rsvp, setRsvpS] = useState<Rsvp>(() => JSON.parse(localStorage.getItem('nr-rsvp') || 'null'))
@@ -141,16 +193,16 @@ function Pill({ active, children, onClick, className }: { active?: boolean; chil
   )
 }
 
-function CircleBtn({ kind, size = 'md', onClick, label, className, active }: { kind: 'x' | 'heart'; size?: 'sm' | 'md' | 'lg'; onClick?: () => void; label: string; className?: string; active?: boolean }) {
+function CircleBtn({ kind, size = 'md', onClick, label, className, active }: { kind: 'x' | 'heart'; size?: 'sm' | 'md' | 'lg'; onClick?: (el: HTMLElement) => void; label: string; className?: string; active?: boolean }) {
   const [k, setK] = useState(0)
   const s = { sm: 'size-10', md: 'size-14', lg: 'size-20' }[size]
   const ic = { sm: 'size-5', md: 'size-7', lg: 'size-9' }[size]
   return (
     <button
       aria-label={label}
-      onClick={() => {
+      onClick={(e) => {
         setK((v) => v + 1)
-        onClick?.()
+        onClick?.(e.currentTarget)
       }}
       className={cx(
         s,
@@ -217,8 +269,9 @@ function PromptCard({ id, answer, children, className, bare }: { id: string; ans
       <button
         aria-label={on ? 'Unlike' : 'Like this'}
         disabled={!!rsvp}
-        onClick={() => {
+        onClick={(e) => {
           setK((v) => v + 1)
+          if (!on) dropFrom(e.currentTarget)
           toggle(id, PROMPTS[id])
         }}
         className={cx(
@@ -235,9 +288,11 @@ function PromptCard({ id, answer, children, className, bare }: { id: string; ans
 }
 
 /* ───────────────────────── 1. Entrance ───────────────────────── */
-function Entrance({ onOpen }: { onOpen: () => void }) {
+function Entrance({ onOpen, onStart }: { onOpen: () => void; onStart: () => void }) {
   const [leaving, setLeaving] = useState(false)
-  const go = () => {
+  const go = (el: HTMLElement) => {
+    onStart()
+    dropFrom(el, 8)
     setLeaving(true)
     setTimeout(onOpen, 650)
   }
@@ -276,7 +331,7 @@ function Entrance({ onOpen }: { onOpen: () => void }) {
             <h1 className="mt-3 text-[44px] leading-[1] font-extrabold tracking-[-0.03em] md:text-[72px]">Nick &amp; Rizelle</h1>
             <p className="mt-2 text-[15px] text-white/85">{DATE_LABEL} · {CITY}</p>
             <button
-              onClick={go}
+              onClick={(e) => go(e.currentTarget)}
               className="mt-6 flex h-14 w-full items-center justify-between rounded-full bg-white/75 pr-2 pl-6 text-[16px] font-medium text-ink shadow-lg backdrop-blur-xl transition active:scale-[.98] hover:bg-white/85"
             >
               See why they liked you
@@ -433,7 +488,7 @@ function Hero() {
         })}
         <div className="absolute -bottom-7 left-1/2 z-40 flex -translate-x-1/2 gap-5">
           <CircleBtn kind="x" label="Next photo" onClick={() => shuffle('l')} />
-          <CircleBtn kind="heart" label="Like photo" onClick={() => shuffle('r')} />
+          <CircleBtn kind="heart" label="Like photo" onClick={(el) => { dropFrom(el); shuffle('r') }} />
         </div>
       </div>
 
@@ -653,7 +708,7 @@ function Photos() {
                 }}
                 onPointerDown={top ? (e) => { start.current = e.clientX; moved.current = false; setDrag({ x: 0, on: true }); (e.target as HTMLElement).setPointerCapture(e.pointerId) } : undefined}
                 onPointerMove={top ? (e) => { if (!drag.on) return; const x = e.clientX - start.current; if (Math.abs(x) > 6) moved.current = true; setDrag({ x, on: true }) } : undefined}
-                onPointerUp={top ? () => { if (Math.abs(drag.x) > 110) send(drag.x > 0 ? 1 : -1); else { setDrag({ x: 0, on: false }); if (!moved.current) setOpen(p) } } : undefined}
+                onPointerUp={top ? (e) => { if (Math.abs(drag.x) > 110) { if (drag.x > 0) dropFrom(e.currentTarget); send(drag.x > 0 ? 1 : -1) } else { setDrag({ x: 0, on: false }); if (!moved.current) setOpen(p) } } : undefined}
               >
                 <img src={PHOTOS[p]} alt="Gallery placeholder" draggable={false} className="pointer-events-none size-full object-cover" />
                 {top && (
@@ -667,7 +722,7 @@ function Photos() {
           })}
           <div className="absolute -bottom-7 left-1/2 z-20 flex -translate-x-1/2 gap-5">
             <CircleBtn kind="x" label="Skip photo" onClick={() => send(-1)} />
-            <CircleBtn kind="heart" label="Love photo" onClick={() => send(1)} />
+            <CircleBtn kind="heart" label="Love photo" onClick={(el) => { dropFrom(el); send(1) }} />
           </div>
         </div>
         <div className="hidden max-w-xs space-y-3 md:block">
@@ -782,6 +837,10 @@ function Reply() {
     if (!f.name.trim() || !/\S+@\S+\.\S+/.test(f.email)) return setErr('Add your name and a valid email.')
     if (accept === null) return setErr('Tap the heart or the X to reply.')
     setErr('')
+    if (accept) {
+      const btn = (e.nativeEvent as SubmitEvent).submitter
+      if (btn instanceof HTMLElement) dropFrom(btn, 18)
+    }
     const r = { accept, name: f.name, seats: accept ? seats : 0, ticket: `NR-${Math.floor(100 + Math.random() * 900)}` }
     setRsvp(r)
     if (f.msg.trim()) {
@@ -945,7 +1004,7 @@ function MatchSheet({ onClose }: { onClose: () => void }) {
 /* ───────────────────────── 13. Closing + toast ───────────────────────── */
 function Closing() {
   return (
-    <footer className="mx-auto max-w-6xl px-5 pb-10">
+    <footer className="mx-auto max-w-6xl px-5 pb-28">
       <div className="flex flex-col items-center justify-between gap-4 rounded-full bg-white px-6 py-4 shadow-[0_1px_2px_rgba(0,0,0,.06)] sm:flex-row sm:pr-3">
         <div className="text-center sm:text-left">
           <p className="text-[17px] font-extrabold">Nick &amp; Rizelle</p>
@@ -961,22 +1020,78 @@ function Toast() {
   const { toast } = useLikes()
   if (!toast) return null
   return (
-    <div key={toast + Date.now()} className="fixed bottom-6 left-1/2 z-50 flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-[14px] font-medium text-white shadow-xl" style={{ animation: 'toast 2.2s ease both' }}>
+    <div key={toast + Date.now()} className="fixed bottom-24 left-1/2 z-50 flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-[14px] font-medium text-white shadow-xl" style={{ animation: 'toast 2.2s ease both' }}>
       <HeartMark className="size-5" />{toast}
+    </div>
+  )
+}
+
+/* ───────────────────────── song ───────────────────────── */
+const SONG_SRC = '/fallen.mp3'
+
+function MusicBar({ audioRef, playing, onToggle }: { audioRef: { current: HTMLAudioElement | null }; playing: boolean; onToggle: () => void }) {
+  const [ratio, setRatio] = useState(0)
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    const tick = () => setRatio(audio.duration ? audio.currentTime / audio.duration : 0)
+    audio.addEventListener('timeupdate', tick)
+    return () => audio.removeEventListener('timeupdate', tick)
+  }, [audioRef])
+  const seek = (e: MouseEvent<HTMLButtonElement>) => {
+    const audio = audioRef.current
+    if (!audio?.duration) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    audio.currentTime = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)) * audio.duration
+  }
+  return (
+    <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 md:justify-end md:px-6">
+      <div className="w-full max-w-md rounded-[22px] bg-ink px-3 py-2.5 text-white shadow-xl">
+        <div className="flex items-center gap-3">
+          <img src="/fallen.webp" alt="" className={cx('disc size-10 shrink-0 rounded-full object-cover', playing && 'on')} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[14px] leading-tight font-extrabold">Fallen</p>
+            <p className="truncate text-[12px] text-white/60">Lola Amour</p>
+          </div>
+          <button type="button" onClick={onToggle} aria-label={playing ? 'Pause music' : 'Play music'} className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-ink transition active:scale-95">
+            {playing
+              ? <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden><path d="M7 5h3.2v14H7zM13.8 5H17v14h-3.2z" /></svg>
+              : <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>}
+          </button>
+        </div>
+        <button type="button" aria-label="Song progress" onClick={seek} className="mt-2 block h-1 w-full overflow-hidden rounded-full bg-white/20">
+          <span className="block h-full rounded-full bg-violet" style={{ width: `${ratio * 100}%` }} />
+        </button>
+      </div>
     </div>
   )
 }
 
 /* ───────────────────────── App ───────────────────────── */
 export default function App() {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [playing, setPlaying] = useState(false)
   const [opened, setOpened] = useState(() => sessionStorage.getItem('nr-open') === '1')
   useEffect(() => {
     document.body.style.overflow = opened ? '' : 'hidden'
     if (opened) sessionStorage.setItem('nr-open', '1')
   }, [opened])
+  const startSong = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    void audio.play().catch(() => setPlaying(false))
+  }
+  const toggleSong = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (audio.paused) void audio.play().catch(() => setPlaying(false))
+    else audio.pause()
+  }
   return (
     <LikesProvider>
-      {!opened && <Entrance onOpen={() => setOpened(true)} />}
+      <HeartRain />
+      <audio ref={audioRef} src={SONG_SRC} preload="auto" loop onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} />
+      {!opened && <Entrance onOpen={() => setOpened(true)} onStart={startSong} />}
       {opened && (
         <>
           <PillBar />
@@ -993,6 +1108,7 @@ export default function App() {
             <Reply />
           </main>
           <Closing />
+          <MusicBar audioRef={audioRef} playing={playing} onToggle={toggleSong} />
           <Toast />
         </>
       )}

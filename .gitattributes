@@ -148,3 +148,5 @@
 # UI icons stay as normal files. Vercel does not download Git LFS objects,
 # so an LFS pointer is served instead of the picture and the icon disappears.
 public/assets/*.png -filter -diff -merge
+public/fallen.mp3 -filter -diff -merge
+public/fallen.webp -filter -diff -merge

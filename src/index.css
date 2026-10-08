@@ -22,6 +22,12 @@ body { background: var(--color-canvas); color: var(--color-ink); font-family: va
 @keyframes toast { 0% { opacity: 0; transform: translate(-50%, 16px); } 12%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 8px); } }
 @keyframes burst { from { opacity: 1; transform: translate(0,0) scale(.6); } to { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.1); } }
 @keyframes slideL { to { transform: translateX(-130%) rotate(-14deg); opacity: 0; } }
+@keyframes disc { to { transform: rotate(360deg); } }
+@keyframes heartfall {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(.55) rotate(0deg); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), var(--fall)) scale(1) rotate(var(--rot)); }
+}
 @keyframes pulseRing { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
 
 .anim-rise { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
@@ -32,3 +38,6 @@ body { background: var(--color-canvas); color: var(--color-ink); font-family: va
 .reveal.in { opacity: 1; transform: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
+.disc { animation: disc 8s linear infinite; animation-play-state: paused; }
+.disc.on { animation-play-state: running; }
+.heart-drop { animation: heartfall 1.35s ease-in forwards; }
