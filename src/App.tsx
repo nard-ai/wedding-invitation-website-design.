@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject } from 'react'
+import QRCode from 'qrcode'
 
 /* ───────────────────────── placeholders ───────────────────────── */
 const WEDDING_DATE = new Date('2027-01-21T15:30:00+08:00')
 const DATE_LABEL = 'January 21, 2027 · 3:30 PM'
 const CITY = 'Tagaytay'
+const GUEST_PHOTO_FOLDER = 'https://drive.google.com/drive/folders/10LjqiSxb9phCj2SwwPfEo5jjgITHEyjz?usp=sharing'
 const img = (id: string, w = 1080) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`
 const PHOTOS = [
   img('1726766406089-0308c800b6b2'),
@@ -1117,8 +1119,8 @@ function Attire() {
   )
 }
 
-type Guest = { name: string; role: string; photo?: string; alone?: boolean }
-const guest = (name: string, role: string, extra?: Pick<Guest, 'photo' | 'alone'>): Guest => ({ name, role, ...extra })
+type Guest = { name: string; role: string; photo?: string; alone?: boolean; side?: 'bride' | 'groom' }
+const guest = (name: string, role: string, extra?: Pick<Guest, 'photo' | 'alone' | 'side'>): Guest => ({ name, role, ...extra })
 
 const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] = [
   { id: 'couple', label: 'Couple', icon: <MaskIco f="bb73e.png" />, people: [guest('Dionnel Niko Miguel', 'Groom', { photo: '/nick.png' }), guest('Rizelle Gonzaga Lopez', 'Bride', { photo: '/rizelle.png' })] },
@@ -1148,7 +1150,7 @@ const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] =
     guest('Jhuvert Magnayi', 'Groomsman'), guest('Mary Jane Lopez', 'Bridesmaid'),
     guest('Jonald Delos Santos', 'Groomsman'), guest('Sophia Lopez', 'Bridesmaid'),
     guest('Neil Darien Bañez', 'Groomsman'), guest('Jennifer Lopez', 'Bridesmaid'),
-    guest('Ranjiel Lopez', 'Coin bearer'), guest('Diosel Ariane Miguel', 'Coin bearer'),
+    guest('Ranjiel Lopez', 'Coin bearer'), guest('Diosel Ariane Miguel', 'Coin bearer', { side: 'bride' }),
   ] },
   { id: 'little', label: 'Little ones', icon: <MaskIco f="3a1aa.png" />, people: [
     guest('John Benedict Lopez, Jr.', 'Ring bearer'),
@@ -1174,7 +1176,7 @@ function avatarTint(name: string) {
   return AVATAR_TINTS[h % AVATAR_TINTS.length]
 }
 
-const FEMALE_GIVEN = new Set(['marela', 'jennylene', 'erika', 'dulce', 'katrina', 'sophia', 'sofia', 'sofie', 'jennifer', 'lia', 'maria', 'karisha', 'marxia', 'ariane', 'andrea', 'anne', 'anna', 'angela', 'marie', 'mary', 'grace', 'rose', 'joy', 'jane', 'jessica', 'michelle', 'nicole', 'patricia', 'catherine', 'christine', 'diana', 'elena', 'ella', 'emma', 'hannah', 'isabel', 'julia', 'karen', 'kathleen', 'kristine', 'louise', 'luz', 'melissa', 'monica', 'natalie', 'olivia', 'paula', 'rachel', 'regina', 'rina', 'rochelle', 'ruth', 'sandra', 'sarah', 'stephanie', 'teresa', 'theresa', 'valerie', 'vanessa', 'victoria'])
+const FEMALE_GIVEN = new Set(['marela', 'jennylene', 'erika', 'dulce', 'katrina', 'sophia', 'sofia', 'sofie', 'jennifer', 'lia', 'maria', 'karisha', 'marxia', 'ariane', 'diosel', 'andrea', 'anne', 'anna', 'angela', 'marie', 'mary', 'grace', 'rose', 'joy', 'jane', 'jessica', 'michelle', 'nicole', 'patricia', 'catherine', 'christine', 'diana', 'elena', 'ella', 'emma', 'hannah', 'isabel', 'julia', 'karen', 'kathleen', 'kristine', 'louise', 'luz', 'melissa', 'monica', 'natalie', 'olivia', 'paula', 'rachel', 'regina', 'rina', 'rochelle', 'ruth', 'sandra', 'sarah', 'stephanie', 'teresa', 'theresa', 'valerie', 'vanessa', 'victoria'])
 const FEMALE_HAIR = ['variant02', 'variant04', 'variant08', 'variant10', 'variant23', 'variant28', 'variant36', 'variant37', 'variant39', 'variant41', 'variant43', 'variant45', 'variant46', 'variant47', 'variant57', 'variant58', 'variant63']
 const MALE_HAIR = ['variant01', 'variant06', 'variant07', 'variant15', 'variant17', 'variant24', 'variant44', 'variant60']
 
@@ -1262,10 +1264,11 @@ function Party() {
   const grp = PARTY[shown]
   const young = grp.id === 'little'
   const people = honorFirst(grp.people)
-  const sided = people.some((p) => BRIDE_SIDE.has(p.role) || NICK_SIDE.has(p.role))
-  const bride = people.filter((p) => BRIDE_SIDE.has(p.role))
-  const nick = people.filter((p) => NICK_SIDE.has(p.role))
-  const shared = people.filter((p) => !BRIDE_SIDE.has(p.role) && !NICK_SIDE.has(p.role))
+  const sideOf = (p: Guest) => p.side ?? (BRIDE_SIDE.has(p.role) ? 'bride' : NICK_SIDE.has(p.role) ? 'groom' : 'shared')
+  const sided = people.some((p) => sideOf(p) !== 'shared')
+  const bride = people.filter((p) => sideOf(p) === 'bride')
+  const nick = people.filter((p) => sideOf(p) === 'groom')
+  const shared = people.filter((p) => sideOf(p) === 'shared')
   const preview = sided ? [...bride, ...nick, ...shared] : people
   const pick = (i: number) => {
     if (i === g) return
@@ -1325,6 +1328,33 @@ function Party() {
         )}
       </div>
     </PromptCard>
+  )
+}
+
+function GuestPhotoDrop() {
+  const [svg, setSvg] = useState('')
+  useEffect(() => {
+    let live = true
+    void QRCode.toString(GUEST_PHOTO_FOLDER, { type: 'svg', margin: 0, color: { dark: '#1C1E21', light: '#FFFFFF' } }).then((markup) => {
+      if (live) setSvg(markup)
+    })
+    return () => { live = false }
+  }, [])
+  return (
+    <div className="mt-16 flex flex-col gap-5 rounded-[24px] bg-canvas p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0">
+        <h3 className="text-[20px] font-extrabold tracking-[-0.02em]">Send them the ones you take.</h3>
+        <p className="mt-2 max-w-md text-[15px] leading-relaxed text-mute">On the day, add your photos to Nick &amp; Rizelle's folder. Only they receive the copies.</p>
+        <a href={GUEST_PHOTO_FOLDER} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex h-12 items-center gap-2 rounded-full bg-violet px-5 text-[15px] font-medium text-white transition hover:bg-violet-deep active:scale-[.98]">
+          Add your photos
+          <I.arrow className="size-4" />
+        </a>
+      </div>
+      <div className="grid shrink-0 justify-items-center gap-2">
+        <span className="grid size-[7.5rem] place-items-center rounded-[20px] bg-white p-2 [&_svg]:size-full" aria-hidden dangerouslySetInnerHTML={svg ? { __html: svg } : undefined} />
+        <span className="text-[12px] font-medium text-mute">Scan at the table</span>
+      </div>
+    </div>
   )
 }
 
@@ -1401,6 +1431,7 @@ function Photos() {
           </div>
         </div>
       )}
+      <GuestPhotoDrop />
     </PromptCard>
   )
 }
@@ -1409,7 +1440,7 @@ const FAQS = [
   ['Can I bring a plus-one?', "Your invitation shows the number of seats we've saved for you. We'd love to keep it to that."],
   ['Are kids welcome?', '[Placeholder] Only the little ones in our entourage, so parents can enjoy the night.'],
   ['Is there parking?', '[Placeholder] Yes, free parking at both venues. Valet at the reception.'],
-  ['Can I take photos during the ceremony?', "We're having an unplugged ceremony. Our photographer has it covered. Snap away at the reception!"],
+  ['Can I take photos during the ceremony?', "We're having an unplugged ceremony. Our photographer has it covered. Snap away at the reception, then add those photos from Snapshots. Only Nick and Rizelle receive them."],
   ['When should I RSVP?', 'By [RSVP deadline placeholder]. Just like us back at the bottom of this page.'],
 ]
 
