@@ -319,9 +319,18 @@ function rsvpApi(): Plugin {
     configureServer(server) {
       const env = loadEnv(server.config.mode, server.config.root, '')
       if (env.DATABASE_URL) process.env.DATABASE_URL = env.DATABASE_URL
+      if (env.DASHBOARD_PASSPHRASE) process.env.DASHBOARD_PASSPHRASE = env.DASHBOARD_PASSPHRASE
       server.middlewares.use(async (req, res, next) => {
-        if (req.url?.split('?')[0] !== '/api/rsvps') return next()
+        const urlPath = req.url?.split('?')[0]
+        if (urlPath !== '/api/rsvps' && urlPath !== '/api/dashboard') return next()
         try {
+          if (urlPath === '/api/dashboard') {
+            const mod = (await server.ssrLoadModule('/api/dashboard.ts')) as {
+              handleDashboard: (req: typeof import('node:http').IncomingMessage.prototype, res: typeof import('node:http').ServerResponse.prototype) => Promise<void>
+            }
+            await mod.handleDashboard(req, res)
+            return
+          }
           const mod = (await server.ssrLoadModule('/server/rsvps.ts')) as {
             handleRsvp: (req: typeof import('node:http').IncomingMessage.prototype, res: typeof import('node:http').ServerResponse.prototype) => Promise<void>
           }
@@ -330,7 +339,7 @@ function rsvpApi(): Plugin {
           if (!res.headersSent) {
             res.statusCode = 500
             res.setHeader('Content-Type', 'application/json')
-            res.end(JSON.stringify({ error: 'Could not save your reply. Try again.' }))
+            res.end(JSON.stringify({ error: urlPath === '/api/dashboard' ? 'Could not open the dashboard. Try again.' : 'Could not save your reply. Try again.' }))
           }
         }
       })

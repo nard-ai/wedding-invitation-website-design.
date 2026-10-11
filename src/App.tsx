@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject } from 'react'
 import QRCode from 'qrcode'
+import Dashboard from './Dashboard'
 
 /* ───────────────────────── placeholders ───────────────────────── */
 const WEDDING_DATE = new Date('2027-01-21T15:30:00+08:00')
@@ -1796,7 +1797,7 @@ function Toast() {
 const SONG_SRC = '/fallen.mp3'
 
 /* ───────────────────────── App ───────────────────────── */
-export default function App() {
+function Invitation() {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [playing, setPlaying] = useState(false)
   const [opened, setOpened] = useState(() => sessionStorage.getItem('nr-open') === '1')
@@ -1841,4 +1842,10 @@ export default function App() {
       )}
     </LikesProvider>
   )
+}
+
+export default function App() {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/'
+  if (path === '/dashboard') return <Dashboard />
+  return <Invitation />
 }
