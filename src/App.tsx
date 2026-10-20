@@ -7,15 +7,14 @@ const WEDDING_DATE = new Date('2027-01-21T15:30:00+08:00')
 const DATE_LABEL = 'January 21, 2027 · 3:30 PM'
 const CITY = 'Tagaytay'
 const GUEST_PHOTO_FOLDER = 'https://drive.google.com/drive/folders/10LjqiSxb9phCj2SwwPfEo5jjgITHEyjz?usp=sharing'
-const img = (id: string, w = 1080) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`
 const PHOTOS = [
-  img('1726766406089-0308c800b6b2'),
-  img('1627964464837-6328f5931576'),
-  img('1614929511547-974944a54c92'),
-  img('1619439822797-e0b6e7022373'),
-  img('1672184702625-71ddc099768e'),
-  img('1539464443546-5e3512c46694'),
-  img('1732147124876-669f11fecd14'),
+  '/photos/cover.jpg',
+  '/photos/smile.jpg',
+  '/photos/wood.jpg',
+  '/photos/field.jpg',
+  '/photos/together.jpg',
+  '/photos/standing.jpg',
+  '/photos/tree.jpg',
 ]
 
 /* ───────────────────────── icons (thin outline) ───────────────────────── */
@@ -313,7 +312,7 @@ function Entrance({ onOpen, onStart }: { onOpen: () => void; onStart: () => void
         className="absolute inset-0 overflow-hidden md:inset-6 md:rounded-[36px]"
         style={leaving ? { animation: 'slideL .65s cubic-bezier(.5,0,.75,0) forwards' } : undefined}
       >
-        <img src={PHOTOS[0]} alt="Nick and Rizelle (placeholder photo)" className="absolute inset-0 size-full object-cover" />
+        <img src="/photos/entrance.jpg" alt="Nick and Rizelle" className="absolute inset-0 size-full object-cover object-[center_42%]" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/60" />
         <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4 text-white md:p-6">
           <button aria-label="Back" className="grid size-10 place-items-center rounded-full bg-black/20 backdrop-blur-md active:scale-90"><I.back className="size-6" /></button>
@@ -395,10 +394,15 @@ function MatchMeter() {
 }
 
 function CoupleFaces() {
+  const faces = [
+    ['/photos/nick-profile.jpg', 'Dionnel Niko Miguel'],
+    ['/photos/rizelle-profile.jpg', 'Rizelle Gonzaga Lopez'],
+  ]
   return (
     <span className="flex shrink-0 items-center">
-      <img src="/nick.png" alt="" className="size-9 rounded-full object-cover ring-2 ring-white" />
-      <img src="/rizelle.png" alt="" className="-ml-3 size-9 rounded-full object-cover ring-2 ring-white" />
+      {faces.map(([src, name], i) => (
+        <img key={name} src={src} alt="" aria-label={`Avatar of ${name}`} className={cx('size-9 rounded-full object-cover ring-2 ring-white', i > 0 && '-ml-3')} />
+      ))}
     </span>
   )
 }
@@ -678,7 +682,7 @@ function Hero() {
               className={cx('absolute inset-0 overflow-hidden rounded-[28px] shadow-[0_12px_40px_rgba(0,0,0,.18)] transition-all duration-500 ease-[cubic-bezier(.2,.8,.2,1)]', pos)}
               style={flying ? { transform: `translateX(${out === 'l' ? '-120%' : '120%'}) rotate(${out === 'l' ? -16 : 16}deg)`, opacity: 0, transition: 'all .38s cubic-bezier(.5,0,.75,0)' } : undefined}
             >
-              <img src={PHOTOS[p]} alt="Couple photo placeholder" className="size-full object-cover" />
+              <img src={PHOTOS[p]} alt="Nick and Rizelle" className="size-full object-cover" />
               {i === 0 && (
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5 pt-16 text-white">
                   <span className="rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium text-ink backdrop-blur-xl">Photo {order[0]} of {PHOTOS.length}</span>
@@ -736,18 +740,31 @@ const FIRST_CHATS = [
   { src: '/chat-4.jpg', alt: 'They switch the chat to Messenger.' },
 ]
 
+const NICK_YES = [
+  "Before the new year began in 2023, one of my prayers was that the Lord would give me a love meant to last forever. Someone I could match with for life.",
+  "Same faith, same vibe, and someone I could really get along with in everything.",
+  "I had already tried a dating app, but something felt missing. There were no real limits, and it did not feel legitimate. On Facebook Dating, you can be more sure the profile you are talking to is really theirs.",
+  "When the new year came, I was scrolling Facebook and tried Facebook Dating. This time I filtered for what I wanted, and I put in the details of the person I hoped to match with.",
+  "I also widened the location radius, because I had a feeling my forever was outside Cavite. As if she would have her own car.",
+  "Then, in the first week of January, Facebook notified me. I had matched with Rizelle's profile. I stayed on it for a long time. I saw that she is a Christian, and an engineer too. There were coffee photos. She is a coffee lover. And there were stunning nature photos of her.",
+  "Of course I messaged her right away. You can only send a message once the two of you have matched.",
+  "And the rest was history. Rizelle was the answer to that prayer.",
+  "The Lord matched us. That is how strong we are in Him. God is good all the time.",
+]
+
 function Story() {
   const [chat, setChat] = useState(false)
+  const [like, setLike] = useState(false)
   const [ends, setEnds] = useState({ start: true, end: false })
   const rail = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!chat) return
+    if (!chat && !like) return
     const el = rail.current
-    if (el) mark(el)
-    const onKey = (e: { key: string }) => { if (e.key === 'Escape') setChat(false) }
+    if (chat && el) mark(el)
+    const onKey = (e: { key: string }) => { if (e.key === 'Escape') { setChat(false); setLike(false) } }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [chat])
+  }, [chat, like])
   const mark = (el: HTMLDivElement) => {
     const max = el.scrollWidth - el.clientWidth
     setEnds({ start: el.scrollLeft <= 2, end: max <= 2 || el.scrollLeft >= max - 2 })
@@ -763,7 +780,7 @@ function Story() {
     <PromptCard id="story" bare className="mx-auto max-w-6xl">
       <div className="grid overflow-hidden md:grid-cols-2">
         <div className="relative m-3 h-[380px] overflow-hidden rounded-[22px] md:h-auto md:min-h-[520px]">
-          <img src={PHOTOS[4]} alt="Story photo placeholder" className="absolute inset-0 size-full object-cover" />
+          <img src={PHOTOS[4]} alt="Nick and Rizelle" className="absolute inset-0 size-full object-cover" />
           <span className="absolute top-4 left-4 rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium backdrop-blur-xl">Their first photo together</span>
         </div>
         <div className="relative p-6 md:p-12">
@@ -778,8 +795,8 @@ function Story() {
               [Second paragraph placeholder — the first date, the moment they knew, the proposal at [place].]
             </p>
             <div className="mt-8 flex gap-1 overflow-x-auto no-scrollbar">
-              <IconWell icon={<Ico f="d7d7b.svg" className="h-[23px] w-[25px]" />} label="The like" />
-              <IconWell icon={<Ico f="84fc6.svg" className="size-[31px]" />} label="First message" active={chat} onClick={() => { setEnds({ start: true, end: false }); setChat(true) }} />
+              <IconWell icon={<Ico f="d7d7b.svg" className="h-[23px] w-[25px]" />} label="The like" active={like} onClick={() => { setChat(false); setLike(true) }} />
+              <IconWell icon={<Ico f="84fc6.svg" className="size-[31px]" />} label="First message" active={chat} onClick={() => { setLike(false); setEnds({ start: true, end: false }); setChat(true) }} />
               <IconWell icon={<Ico f="24833.svg" className="size-[39px]" />} label="First date" />
               <IconWell icon={<Ico f="d0a82.svg" className="size-12" />} label="The yes" />
             </div>
@@ -815,6 +832,22 @@ function Story() {
               <button type="button" aria-label="Next chat" disabled={ends.end} onClick={() => go(1)} className="absolute top-[30vh] right-1 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white text-ink shadow-md disabled:opacity-30">
                 <I.arrow className="size-5" />
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {like && (
+        <div className="anim-fade fixed inset-0 z-[70] flex items-end justify-center bg-black/55 backdrop-blur-sm sm:items-center sm:p-6" onClick={() => setLike(false)} role="dialog" aria-modal aria-label="Nick's point of view">
+          <div className="anim-rise flex max-h-[92vh] w-full max-w-xl flex-col overflow-y-auto rounded-t-[32px] bg-white p-5 sm:rounded-[32px] sm:p-7" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-medium text-mute">Nick's point of view</p>
+                <h3 className="mt-1 text-[24px] leading-tight font-extrabold tracking-[-0.02em]">The like</h3>
+              </div>
+              <CircleBtn kind="x" size="sm" label="Close" onClick={() => setLike(false)} />
+            </div>
+            <div className="mt-5 space-y-4 text-[16px] leading-relaxed">
+              {NICK_YES.map((line) => <p key={line}>{line}</p>)}
             </div>
           </div>
         </div>
@@ -1124,7 +1157,7 @@ type Guest = { name: string; role: string; photo?: string; alone?: boolean; side
 const guest = (name: string, role: string, extra?: Pick<Guest, 'photo' | 'alone' | 'side'>): Guest => ({ name, role, ...extra })
 
 const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] = [
-  { id: 'couple', label: 'Couple', icon: <MaskIco f="bb73e.png" />, people: [guest('Dionnel Niko Miguel', 'Groom', { photo: '/nick.png' }), guest('Rizelle Gonzaga Lopez', 'Bride', { photo: '/rizelle.png' })] },
+  { id: 'couple', label: 'Couple', icon: <MaskIco f="bb73e.png" />, people: [guest('Dionnel Niko Miguel', 'Groom', { photo: '/photos/nick-profile.jpg' }), guest('Rizelle Gonzaga Lopez', 'Bride', { photo: '/photos/rizelle-profile.jpg' })] },
   { id: 'parents', label: 'Parents', icon: <MaskIco f="63cfb.png" />, people: [guest('Dionisio M. Miguel', 'Father of the groom'), guest('Elsie A. Miguel', 'Mother of the groom'), guest('Emeterio F. Lopez', 'Father of the bride'), guest('Rizalminda G. Lopez', 'Mother of the bride')] },
   { id: 'principal', label: 'Principal', icon: <MaskIco f="f3d9b.png" />, people: [
     guest('Mr. Bernard Sahagun', 'Ninong'), guest('Mrs. Elizabeth Sahagun', 'Ninang'),
@@ -1140,24 +1173,24 @@ const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] =
     guest('Ptr. Arvin Martin', 'Wedding officiant', { alone: true }),
   ] },
   { id: 'secondary', label: 'Secondary', icon: <MaskIco f="f5390.png" />, people: [
-    guest('Richard Damian', 'Candle'), guest('Marela Laarni Holgado', 'Candle'),
-    guest('Edriane Joelle Agorilla', 'Veil'), guest('Jennylene Lopez', 'Veil'),
-    guest('John Edrian Marasigan', 'Cord'), guest('Erika Grace Banuelos', 'Cord'),
+    guest('Richard Damian', 'Candle', { photo: '/people/richard-damian.jpg' }), guest('Marela Laarni Holgado', 'Candle'),
+    guest('Edriane Joelle Agorilla', 'Veil', { photo: '/people/edriane-joelle-agorilla.jpg' }), guest('Jennylene Lopez', 'Veil', { photo: '/people/jennylene-lopez.jpg' }),
+    guest('John Edrian Marasigan', 'Cord', { photo: '/people/john-edrian-marasigan.jpg' }), guest('Erika Grace Banuelos', 'Cord', { photo: '/people/erika-grace-banuelos.jpg' }),
   ] },
   { id: 'party', label: 'Wedding party', icon: <MaskIco f="d7d7b.svg" className="h-[23px] w-[25px]" />, people: [
-    guest('Jan Angela Reveral', 'Matron of honor'), guest('Dulce Amor Laroza', 'Maid of honor'),
-    guest('Jose Maisa III', 'Best man'), guest('Jomer Flores', 'Best man'),
-    guest('Ronnel Lopez', 'Groomsman'), guest('Katrina Miguel', 'Bridesmaid'),
-    guest('Jhuvert Magnayi', 'Groomsman'), guest('Mary Jane Lopez', 'Bridesmaid'),
-    guest('Jonald Delos Santos', 'Groomsman'), guest('Sophia Lopez', 'Bridesmaid'),
-    guest('Neil Darien Bañez', 'Groomsman'), guest('Jennifer Lopez', 'Bridesmaid'),
-    guest('Ranjiel Lopez', 'Coin bearer'), guest('Diosel Ariane Miguel', 'Coin bearer', { side: 'bride' }),
+    guest('Jan Angela Reveral', 'Matron of honor', { photo: '/people/jan-angela-reveral.jpg' }), guest('Dulce Amor Laroza', 'Maid of honor', { photo: '/people/dulce-amor-laroza.jpg' }),
+    guest('Jose Maisa III', 'Best man', { photo: '/people/jose-maisa.jpg' }), guest('Jomer Flores', 'Best man', { photo: '/people/jomer-flores.jpg' }),
+    guest('Ronnel Lopez', 'Groomsman'), guest('Katrina Miguel', 'Bridesmaid', { photo: '/people/katrina-miguel.jpg' }),
+    guest('Jhuvert Magnayi', 'Groomsman', { photo: '/people/jhuvert-magnayi.jpg' }), guest('Mary Jane Lopez', 'Bridesmaid', { photo: '/people/mary-jane-lopez.jpg' }),
+    guest('Jonald Delos Santos', 'Groomsman', { photo: '/people/jonald-delos-santos.jpg' }), guest('Sophia Lopez', 'Bridesmaid', { photo: '/people/sophia-lopez.jpg' }),
+    guest('Neil Darien Bañez', 'Groomsman', { photo: '/people/neil-darien-banez.jpg' }), guest('Jennifer Lopez', 'Bridesmaid'),
+    guest('Ranjiel Lopez', 'Coin bearer', { photo: '/people/ranjiel-lopez.jpg' }), guest('Diosel Ariane Miguel', 'Coin bearer', { side: 'bride', photo: '/people/diosel-ariane-miguel.jpg' }),
   ] },
   { id: 'little', label: 'Little ones', icon: <MaskIco f="3a1aa.png" />, people: [
-    guest('John Benedict Lopez, Jr.', 'Ring bearer'),
-    guest('Reagan James Reveral', 'Bible bearer'),
-    guest('Lia Mirelle Sahagun', 'Flower girl'), guest('Maria Ayesha Lopez', 'Flower girl'),
-    guest('Karisha Jayne Erilla', 'Flower girl'), guest('Marxia Duran', 'Flower girl'),
+    guest('John Benedict Lopez, Jr.', 'Ring bearer', { photo: '/people/john-benedict-lopez.jpg' }),
+    guest('Reagan James Reveral', 'Bible bearer', { photo: '/people/reagan-james-reveral.jpg' }),
+    guest('Lia Mirelle Sahagun', 'Flower girl', { photo: '/people/lia-mirelle-sahagun.jpg' }), guest('Maria Ayesha Lopez', 'Flower girl', { photo: '/people/maria-ayesha-lopez.jpg' }),
+    guest('Karisha Jayne Erilla', 'Flower girl', { photo: '/people/karisha-jayne-erilla.jpg' }), guest('Marxia Duran', 'Flower girl', { photo: '/people/marxia-duran.jpg' }),
   ] },
 ]
 
@@ -1223,20 +1256,20 @@ function GuestFace({ name, className }: { name: string; className?: string }) {
   )
 }
 
-function PersonAvatar({ name, role, photo, young, stack }: { name: string; role: string; photo?: string; young?: boolean; stack?: boolean }) {
+function PersonAvatar({ name, role, photo, stack }: { name: string; role: string; photo?: string; young?: boolean; stack?: boolean }) {
   const [failed, setFailed] = useState(false)
-  const tint = avatarTint(name)
-  const src = failed ? '' : photo || dicebear(name, role, !!young, tint)
+  const couple = role === 'Groom' || role === 'Bride'
+  const src = !failed && photo ? photo : ''
   return (
     <span className={cx('relative shrink-0', stack && 'ring-2 ring-white')}>
-      <span className={cx('party-avatar grid place-items-center overflow-hidden rounded-full text-[14px] font-extrabold text-violet', stack ? 'size-8' : 'size-12 sm:size-14', photo && 'ring-2 ring-violet')} style={{ background: tint }}>
+      <span className={cx('party-avatar grid place-items-center overflow-hidden rounded-full bg-[#F6F4FD] text-[14px] font-extrabold text-violet', stack ? 'size-8' : 'size-12 sm:size-14', couple && 'ring-2 ring-violet')}>
         {src ? (
           <img src={src} alt={`Avatar of ${name}`} className="size-full object-cover" onError={() => setFailed(true)} />
         ) : (
           <span aria-label={`Avatar of ${name}`}>{partyInitial(name)}</span>
         )}
       </span>
-      {photo && !stack && (
+      {couple && !stack && (
         <span className="absolute -right-0.5 -bottom-0.5 grid size-5 place-items-center rounded-full bg-violet text-white ring-2 ring-white">
           <BrandHeart className="size-3" hi="#E4DCF8" />
         </span>
@@ -1396,7 +1429,7 @@ function Photos() {
                 onPointerMove={top ? (e) => { if (!drag.on) return; const x = e.clientX - start.current; if (Math.abs(x) > 6) moved.current = true; setDrag({ x, on: true }) } : undefined}
                 onPointerUp={top ? (e) => { if (Math.abs(drag.x) > 110) { if (drag.x > 0) dropFrom(e.currentTarget); send(drag.x > 0 ? 1 : -1) } else { setDrag({ x: 0, on: false }); if (!moved.current) setOpen(p) } } : undefined}
               >
-                <img src={PHOTOS[p]} alt="Gallery placeholder" draggable={false} className="pointer-events-none size-full object-cover" />
+                <img src={PHOTOS[p]} alt="Nick and Rizelle" draggable={false} className="pointer-events-none size-full object-cover" />
                 {top && (
                   <>
                     <span className="absolute top-4 left-4 rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium backdrop-blur-xl">Tap to open · {p + 1}/{PHOTOS.length}</span>
@@ -1423,7 +1456,7 @@ function Photos() {
       {open !== null && (
         <div className="anim-fade fixed inset-0 z-[60] grid place-items-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setOpen(null)} role="dialog" aria-modal>
           <div className="anim-rise relative max-h-[88vh] w-full max-w-3xl overflow-hidden rounded-[28px] bg-white" onClick={(e) => e.stopPropagation()}>
-            <img src={PHOTOS[open]} alt="Enlarged photo" className="max-h-[78vh] w-full object-cover" />
+            <img src={PHOTOS[open]} alt="Nick and Rizelle" className="max-h-[78vh] w-full object-cover" />
             <div className="flex items-center justify-between p-4">
               <p className="text-[15px] font-medium">[Caption placeholder {open + 1}]</p>
               <span className="text-[13px] text-mute">{open + 1} / {PHOTOS.length}</span>

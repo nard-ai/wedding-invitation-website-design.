@@ -157,3 +157,5 @@ public/chat-1.jpg -filter -diff -merge
 public/chat-2.jpg -filter -diff -merge
 public/chat-3.jpg -filter -diff -merge
 public/chat-4.jpg -filter -diff -merge
+public/people/*.jpg -filter -diff -merge
+public/photos/*.jpg -filter -diff -merge
