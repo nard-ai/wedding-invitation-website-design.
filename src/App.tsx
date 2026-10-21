@@ -7,14 +7,38 @@ const WEDDING_DATE = new Date('2027-01-21T15:30:00+08:00')
 const DATE_LABEL = 'January 21, 2027 · 3:30 PM'
 const CITY = 'Tagaytay'
 const GUEST_PHOTO_FOLDER = 'https://drive.google.com/drive/folders/10LjqiSxb9phCj2SwwPfEo5jjgITHEyjz?usp=sharing'
-const PHOTOS = [
-  '/photos/cover.jpg',
-  '/photos/smile.jpg',
-  '/photos/wood.jpg',
-  '/photos/field.jpg',
-  '/photos/together.jpg',
-  '/photos/standing.jpg',
-  '/photos/tree.jpg',
+const CIRCLE_PHOTO = '/photos/wood.jpg'
+const STORY_PHOTO = '/photos/together.jpg'
+const HERO = [
+  '/photos/hero-1.jpg',
+  '/photos/hero-2.jpg',
+  '/photos/hero-3.jpg',
+  '/photos/hero-4.jpg',
+  '/photos/hero-5.jpg',
+  '/photos/hero-6.jpg',
+  '/photos/hero-7.jpg',
+]
+const SNAPSHOTS: { src: string; caption: string }[] = [
+  { src: '/photos/snap-01.jpg', caption: 'A quiet song between them.' },
+  { src: '/photos/snap-02.jpg', caption: 'Two instruments, one afternoon.' },
+  { src: '/photos/snap-03.jpg', caption: 'Her laugh carried the song.' },
+  { src: '/photos/snap-04.jpg', caption: 'An afternoon kept on purpose.' },
+  { src: '/photos/snap-05.jpg', caption: 'Shade, mountains, and time to spare.' },
+  { src: '/photos/snap-06.jpg', caption: 'Held close, with the hills behind.' },
+  { src: '/photos/snap-07.jpg', caption: 'Hand in hand across the field.' },
+  { src: '/photos/snap-08.jpg', caption: 'A long road, with music in hand.' },
+  { src: '/photos/snap-09.jpg', caption: 'A still hour beneath the leaves.' },
+  { src: '/photos/snap-10.jpg', caption: 'A promise, held in both hands.' },
+  { src: '/photos/snap-11.jpg', caption: 'A look that said everything.' },
+  { src: '/photos/snap-12.jpg', caption: 'Side by side across the water.' },
+  { src: '/photos/snap-13.jpg', caption: 'Close enough to feel the yes.' },
+  { src: '/photos/snap-14.jpg', caption: 'Joy, right there in the garden.' },
+  { src: '/photos/snap-15.jpg', caption: 'A soft rest in the garden light.' },
+  { src: '/photos/snap-16.jpg', caption: 'Coffee by the window, shared.' },
+  { src: '/photos/snap-17.jpg', caption: 'A pause on the stairs, together.' },
+  { src: '/photos/snap-18.jpg', caption: 'A quiet hold above the fields.' },
+  { src: '/photos/snap-19.jpg', caption: 'Still water, and an unhurried hour.' },
+  { src: '/photos/snap-20.jpg', caption: 'Together beneath the old tree.' },
 ]
 
 /* ───────────────────────── icons (thin outline) ───────────────────────── */
@@ -325,7 +349,7 @@ function Entrance({ onOpen, onStart }: { onOpen: () => void; onStart: () => void
         {/* the notification: they liked you first */}
         <div className="anim-drop absolute inset-x-4 top-20 mx-auto flex max-w-md items-center gap-3 rounded-[22px] bg-white/80 p-3 pr-4 shadow-xl backdrop-blur-xl [animation-delay:.5s]">
           <div className="relative flex shrink-0">
-            <img src={PHOTOS[2]} alt="" className="size-11 rounded-full object-cover ring-2 ring-white" />
+            <img src={CIRCLE_PHOTO} alt="" className="size-11 rounded-full object-cover ring-2 ring-white" />
             <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full bg-violet text-white ring-2 ring-white"><BrandHeart className="size-3" /></span>
           </div>
           <div className="min-w-0 flex-1">
@@ -655,21 +679,21 @@ function useCountdown() {
 }
 
 function Hero() {
-  const [order, setOrder] = useState([1, 3, 5])
+  const [order, setOrder] = useState(HERO.map((_, i) => i))
   const [out, setOut] = useState<null | 'l' | 'r'>(null)
   const cd = useCountdown()
   const shuffle = (dir: 'l' | 'r') => {
     if (out) return
     setOut(dir)
     setTimeout(() => {
-      setOrder((o) => [o[1], o[2], o[0]])
+      setOrder((o) => [...o.slice(1), o[0]])
       setOut(null)
     }, 380)
   }
   return (
     <section id="top" className="mx-auto grid max-w-6xl items-center gap-12 px-5 pt-28 pb-10 md:grid-cols-[1fr_1.05fr] md:gap-16 md:pt-36">
       <div className="relative mx-auto h-[440px] w-full max-w-[340px] md:h-[520px] md:max-w-[400px]">
-        {order.map((p, i) => {
+        {order.slice(0, 3).map((p, i) => {
           const pos = [
             'rotate-0 z-30',
             '-rotate-6 -translate-x-6 translate-y-3 scale-[.95] z-20',
@@ -682,10 +706,10 @@ function Hero() {
               className={cx('absolute inset-0 overflow-hidden rounded-[28px] shadow-[0_12px_40px_rgba(0,0,0,.18)] transition-all duration-500 ease-[cubic-bezier(.2,.8,.2,1)]', pos)}
               style={flying ? { transform: `translateX(${out === 'l' ? '-120%' : '120%'}) rotate(${out === 'l' ? -16 : 16}deg)`, opacity: 0, transition: 'all .38s cubic-bezier(.5,0,.75,0)' } : undefined}
             >
-              <img src={PHOTOS[p]} alt="Nick and Rizelle" className="size-full object-cover" />
+              <img src={HERO[p]} alt="Nick and Rizelle" className="size-full object-cover" />
               {i === 0 && (
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5 pt-16 text-white">
-                  <span className="rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium text-ink backdrop-blur-xl">Photo {order[0]} of {PHOTOS.length}</span>
+                  <span className="rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium text-ink backdrop-blur-xl">Photo {order[0] + 1} of {HERO.length}</span>
                 </div>
               )}
             </div>
@@ -752,19 +776,45 @@ const NICK_YES = [
   "The Lord matched us. That is how strong we are in Him. God is good all the time.",
 ]
 
+const RIZELLE_YES = [
+  "As a hopeless romantic and a Wattpad girl, I wrote down the qualities of my ideal man, then prayed for them. At first I was hesitant about Facebook Dating, because I felt it would not be an organic encounter. Haha. My best friend was the one who talked me into it.",
+  "I created a profile, then filtered possible matches by the list of qualities I had prayed to the Lord for. To keep a short list, I only scrolled through the people who had already liked me. At least I knew they were already interested in my profile. Haha.",
+  "When I came across Nick's profile (Dion), I thought for a few minutes about whether I would like him back. Same age, same faith, same field of work, a music lover, a non-smoker, and an occasional drinker. It looked right, so I liked him back.",
+  "Then on January 7, 2023, around 10 PM, he messaged me through the dating app.",
+]
+
+const FIRST_DATE = [
+  "After a month of steady chats and calls, we decided to meet on an ordinary Sunday. Nothing fancy. Lunch at Don Juan, dessert from Dairy Queen, and a movie, The First Slam Dunk.",
+]
+
+const NICK_PROPOSAL = [
+  "I started planning the proposal last year, because I wanted to give Rizelle the moment I had been waiting to give her. She had dropped hints about the engagement ring she wanted. She never said it outright. She made me guess the exact diamond cut, and she said that cut represented her.",
+  "Once I was sure of the cut, I looked for a place to have the ring made without her finding out. My excuse was that I was only going out to pay the house bills. I still ended up in Lipa, coordinating with jewelry shops.",
+  "When the ring was nearly finished, I decided I would propose in December, any day that month. I did not want to wait any longer, so I moved it to before Christmas. Before that, I asked her parents and told them I was going to propose to Rizelle this December.",
+  "A week before the proposal, I had the ring. I got serious about hiding it. Then Rizelle dreamed that I had already proposed. I thought she had found the hiding place, and I was very nervous. She had not found it. In my head I said, \"Next week. That is when I give it to her.\"",
+  "I booked a place full of trees, with a beautiful view, where the two of us would be the only guests. Intimate.",
+]
+
+const THE_YES = [
+  "The night before the proposal, Nick asked if we could go out and watch the sunrise. I said yes. We had never done that. One catch: we did not leave the house until 8 AM. The sun was already high, and very much awake. We went anyway, because he said the place was already booked. A hill in Calatagan.",
+  "The clue was a pink tripod. Nick does not bring tripods. We are not a photos-and-TikTok couple. He set the phone up, stepped behind me, and when I turned around he was already on one knee. The plot twist got there first. Before he could ask, and before I could answer, the whole camera setup fell over.",
+]
+
+const YES_CLOSE = "In the morning of December 20, 2025, she said yes. The size and the design of the ring were exactly right. A princess cut, because she is a Disney princess, and soon to be my queen."
+
 function Story() {
   const [chat, setChat] = useState(false)
-  const [like, setLike] = useState(false)
+  const [tale, setTale] = useState<null | 'like' | 'date' | 'yes'>(null)
   const [ends, setEnds] = useState({ start: true, end: false })
   const rail = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!chat && !like) return
+    if (!chat && !tale) return
     const el = rail.current
     if (chat && el) mark(el)
-    const onKey = (e: { key: string }) => { if (e.key === 'Escape') { setChat(false); setLike(false) } }
+    const onKey = (e: { key: string }) => { if (e.key === 'Escape') { setChat(false); setTale(null) } }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [chat, like])
+  }, [chat, tale])
   const mark = (el: HTMLDivElement) => {
     const max = el.scrollWidth - el.clientWidth
     setEnds({ start: el.scrollLeft <= 2, end: max <= 2 || el.scrollLeft >= max - 2 })
@@ -780,7 +830,7 @@ function Story() {
     <PromptCard id="story" bare className="mx-auto max-w-6xl">
       <div className="grid overflow-hidden md:grid-cols-2">
         <div className="relative m-3 h-[380px] overflow-hidden rounded-[22px] md:h-auto md:min-h-[520px]">
-          <img src={PHOTOS[4]} alt="Nick and Rizelle" className="absolute inset-0 size-full object-cover" />
+          <img src={STORY_PHOTO} alt="Nick and Rizelle" className="absolute inset-0 size-full object-cover" />
           <span className="absolute top-4 left-4 rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium backdrop-blur-xl">Their first photo together</span>
         </div>
         <div className="relative p-6 md:p-12">
@@ -795,10 +845,10 @@ function Story() {
               [Second paragraph placeholder — the first date, the moment they knew, the proposal at [place].]
             </p>
             <div className="mt-8 flex gap-1 overflow-x-auto no-scrollbar">
-              <IconWell icon={<Ico f="d7d7b.svg" className="h-[23px] w-[25px]" />} label="The like" active={like} onClick={() => { setChat(false); setLike(true) }} />
-              <IconWell icon={<Ico f="84fc6.svg" className="size-[31px]" />} label="First message" active={chat} onClick={() => { setLike(false); setEnds({ start: true, end: false }); setChat(true) }} />
-              <IconWell icon={<Ico f="24833.svg" className="size-[39px]" />} label="First date" />
-              <IconWell icon={<Ico f="d0a82.svg" className="size-12" />} label="The yes" />
+              <IconWell icon={<Ico f="d7d7b.svg" className="h-[23px] w-[25px]" />} label="The like" active={tale === 'like'} onClick={() => { setChat(false); setTale('like') }} />
+              <IconWell icon={<Ico f="84fc6.svg" className="size-[31px]" />} label="First message" active={chat} onClick={() => { setTale(null); setEnds({ start: true, end: false }); setChat(true) }} />
+              <IconWell icon={<Ico f="24833.svg" className="size-[39px]" />} label="First date" active={tale === 'date'} onClick={() => { setChat(false); setTale('date') }} />
+              <IconWell icon={<Ico f="d0a82.svg" className="size-12" />} label="The yes" active={tale === 'yes'} onClick={() => { setChat(false); setTale('yes') }} />
             </div>
           </div>
         </div>
@@ -836,18 +886,40 @@ function Story() {
           </div>
         </div>
       )}
-      {like && (
-        <div className="anim-fade fixed inset-0 z-[70] flex items-end justify-center bg-black/55 backdrop-blur-sm sm:items-center sm:p-6" onClick={() => setLike(false)} role="dialog" aria-modal aria-label="Nick's point of view">
+      {tale && (
+        <div className="anim-fade fixed inset-0 z-[70] flex items-end justify-center bg-black/55 backdrop-blur-sm sm:items-center sm:p-6" onClick={() => setTale(null)} role="dialog" aria-modal aria-label={tale === 'like' ? 'The like' : tale === 'date' ? 'First date' : 'The yes'}>
           <div className="anim-rise flex max-h-[92vh] w-full max-w-xl flex-col overflow-y-auto rounded-t-[32px] bg-white p-5 sm:rounded-[32px] sm:p-7" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[13px] font-medium text-mute">Nick's point of view</p>
-                <h3 className="mt-1 text-[24px] leading-tight font-extrabold tracking-[-0.02em]">The like</h3>
+                <p className="text-[13px] font-medium text-mute">{tale === 'like' ? 'Two points of view' : tale === 'date' ? 'February 12, 2023' : 'December 20, 2025'}</p>
+                <h3 className="mt-1 text-[24px] leading-tight font-extrabold tracking-[-0.02em]">{tale === 'like' ? 'The like' : tale === 'date' ? 'First date' : 'The yes'}</h3>
               </div>
-              <CircleBtn kind="x" size="sm" label="Close" onClick={() => setLike(false)} />
+              <CircleBtn kind="x" size="sm" label="Close" onClick={() => setTale(null)} />
             </div>
             <div className="mt-5 space-y-4 text-[16px] leading-relaxed">
-              {NICK_YES.map((line) => <p key={line}>{line}</p>)}
+              {tale === 'like' ? (
+                <>
+                  <h4 className="text-[18px] font-extrabold tracking-[-0.02em]">Nick's point of view</h4>
+                  {NICK_YES.map((line) => <p key={line}>{line}</p>)}
+                  <h4 className="pt-3 text-[18px] font-extrabold tracking-[-0.02em]">Rizelle's point of view</h4>
+                  {RIZELLE_YES.map((line) => <p key={line}>{line}</p>)}
+                </>
+              ) : tale === 'date' ? (
+                <>
+                  {FIRST_DATE.map((line) => <p key={line}>{line}</p>)}
+                  <img src="/photos/date-1.jpg" alt="Nick and Rizelle on their first date" className="w-full rounded-[22px] object-cover" />
+                  <img src="/photos/date-2.jpg" alt="Lunch at Don Juan" className="w-full rounded-[22px] object-cover" />
+                </>
+              ) : (
+                <>
+                  <h4 className="text-[18px] font-extrabold tracking-[-0.02em]">Nick's point of view</h4>
+                  {NICK_PROPOSAL.map((line) => <p key={line}>{line}</p>)}
+                  <h4 className="pt-3 text-[18px] font-extrabold tracking-[-0.02em]">Rizelle's point of view</h4>
+                  {THE_YES.map((line) => <p key={line}>{line}</p>)}
+                  <p className="pt-3 text-[13px] font-medium text-mute">Nick</p>
+                  <p>{YES_CLOSE}</p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -1393,7 +1465,7 @@ function GuestPhotoDrop() {
 }
 
 function Photos() {
-  const [stack, setStack] = useState(PHOTOS.map((_, i) => i))
+  const [stack, setStack] = useState(SNAPSHOTS.map((_, i) => i))
   const [drag, setDrag] = useState({ x: 0, on: false })
   const [fly, setFly] = useState<0 | 1 | -1>(0)
   const [open, setOpen] = useState<number | null>(null)
@@ -1429,10 +1501,10 @@ function Photos() {
                 onPointerMove={top ? (e) => { if (!drag.on) return; const x = e.clientX - start.current; if (Math.abs(x) > 6) moved.current = true; setDrag({ x, on: true }) } : undefined}
                 onPointerUp={top ? (e) => { if (Math.abs(drag.x) > 110) { if (drag.x > 0) dropFrom(e.currentTarget); send(drag.x > 0 ? 1 : -1) } else { setDrag({ x: 0, on: false }); if (!moved.current) setOpen(p) } } : undefined}
               >
-                <img src={PHOTOS[p]} alt="Nick and Rizelle" draggable={false} className="pointer-events-none size-full object-cover" />
+                <img src={SNAPSHOTS[p].src} alt="Nick and Rizelle" draggable={false} className="pointer-events-none size-full object-cover" />
                 {top && (
                   <>
-                    <span className="absolute top-4 left-4 rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium backdrop-blur-xl">Tap to open · {p + 1}/{PHOTOS.length}</span>
+                    <span className="absolute top-4 left-4 rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium backdrop-blur-xl">Tap to open · {p + 1}/{SNAPSHOTS.length}</span>
                     <span className="absolute top-5 right-5 rounded-full bg-violet px-3 py-1 text-[13px] font-extrabold text-white transition-opacity" style={{ opacity: Math.max(0, drag.x / 110) }}>LOVE</span>
                   </>
                 )}
@@ -1447,8 +1519,8 @@ function Photos() {
         <div className="hidden max-w-xs space-y-3 md:block">
           {stack.slice(0, 4).map((p) => (
             <button key={p} onClick={() => setOpen(p)} className="flex w-full items-center gap-3 rounded-[18px] p-2 text-left transition hover:bg-canvas">
-              <img src={PHOTOS[p]} alt="" className="size-14 rounded-2xl object-cover" />
-              <span className="text-[14px] font-medium">[Caption placeholder {p + 1}]</span>
+              <img src={SNAPSHOTS[p].src} alt="" className="size-14 rounded-2xl object-cover" />
+              <span className="text-[14px] font-medium">{SNAPSHOTS[p].caption}</span>
             </button>
           ))}
         </div>
@@ -1456,10 +1528,10 @@ function Photos() {
       {open !== null && (
         <div className="anim-fade fixed inset-0 z-[60] grid place-items-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setOpen(null)} role="dialog" aria-modal>
           <div className="anim-rise relative max-h-[88vh] w-full max-w-3xl overflow-hidden rounded-[28px] bg-white" onClick={(e) => e.stopPropagation()}>
-            <img src={PHOTOS[open]} alt="Nick and Rizelle" className="max-h-[78vh] w-full object-cover" />
+            <img src={SNAPSHOTS[open].src} alt="Nick and Rizelle" className="max-h-[78vh] w-full object-cover" />
             <div className="flex items-center justify-between p-4">
-              <p className="text-[15px] font-medium">[Caption placeholder {open + 1}]</p>
-              <span className="text-[13px] text-mute">{open + 1} / {PHOTOS.length}</span>
+              <p className="text-[15px] font-medium">{SNAPSHOTS[open].caption}</p>
+              <span className="text-[13px] text-mute">{open + 1} / {SNAPSHOTS.length}</span>
             </div>
             <CircleBtn kind="x" size="sm" label="Close" onClick={() => setOpen(null)} className="absolute top-4 right-4" />
           </div>
@@ -1509,15 +1581,31 @@ function Faq() {
 function Gift() {
   return (
     <PromptCard id="gift" className="mx-auto max-w-3xl">
-      <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-start">
-        <span className="grid size-16 shrink-0 place-items-center rounded-full bg-well text-violet"><I.gift className="size-8" /></span>
-        <div>
+      <div className="mt-2 grid items-center gap-8 md:grid-cols-[1fr_260px]">
+        <div className="min-w-0">
           <h2 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em]">Your presence is the gift.</h2>
-          <p className="mt-3 text-[15px] leading-relaxed text-mute">
-            If you'd like to give something more, a contribution toward our first home together would mean the world. [Bank / e-wallet details placeholder]
+          <p className="mt-3 max-w-md text-[15px] leading-relaxed text-mute">
+            If you would like to give something more, a contribution toward our first home together would mean the world.
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-canvas px-4 py-2 text-[13px] font-medium text-mute">[Account name] · [Account number]</div>
+          <dl className="mt-6 max-w-md text-[15px]">
+            <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
+              <dt className="text-mute">Bank</dt>
+              <dd className="font-extrabold">BDO</dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
+              <dt className="text-mute">Account name</dt>
+              <dd className="font-extrabold">NewChapter</dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
+              <dt className="text-mute">Account number</dt>
+              <dd className="font-extrabold tracking-[0.14em]">·······4389</dd>
+            </div>
+          </dl>
+          <p className="mt-4 max-w-md text-[13px] leading-relaxed text-mute">BDO to BDO transfers are free. Other banks may charge a fee.</p>
         </div>
+        <figure className="mx-auto w-full max-w-[260px] rounded-[28px] bg-white p-3 ring-1 ring-line">
+          <img src="/assets/gift-qr.png" alt="BDO QR code for NewChapter, account ending 4389" className="w-full" />
+        </figure>
       </div>
     </PromptCard>
   )
@@ -1759,7 +1847,7 @@ function MatchSheet({ onClose }: { onClose: () => void }) {
               <I.heart className="size-4" fill />
             </span>
           ))}
-          <img src={PHOTOS[2]} alt="" className="relative z-10 size-24 -rotate-6 rounded-full object-cover ring-4 ring-white shadow-lg" />
+          <img src={CIRCLE_PHOTO} alt="" className="relative z-10 size-24 -rotate-6 rounded-full object-cover ring-4 ring-white shadow-lg" />
           <span className={cx('relative -ml-5 grid size-24 rotate-6 place-items-center rounded-full text-[36px] font-extrabold text-white ring-4 ring-white shadow-lg', rsvp.accept ? 'bg-violet' : 'bg-[#bcc0c4]')}>{initial}</span>
           {rsvp.accept && <span className="absolute -bottom-2 z-20 grid place-items-center rounded-full bg-white p-1 shadow-md"><HeartMark className="size-11" /></span>}
         </div>
