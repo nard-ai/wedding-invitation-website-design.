@@ -831,7 +831,7 @@ function Story() {
       <div className="grid overflow-hidden md:grid-cols-2">
         <div className="relative m-3 h-[380px] overflow-hidden rounded-[22px] md:h-auto md:min-h-[520px]">
           <img src={STORY_PHOTO} alt="Nick and Rizelle" className="absolute inset-0 size-full object-cover" />
-          <span className="absolute top-4 left-4 rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium backdrop-blur-xl">Their first photo together</span>
+          <span className="absolute top-4 left-4 rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium backdrop-blur-xl">Nick & Rizelle</span>
         </div>
         <div className="relative p-6 md:p-12">
           <span aria-hidden className="pointer-events-none absolute -top-2 right-4 text-[120px] leading-none font-extrabold tracking-[-0.06em] text-well select-none md:text-[180px]">2027</span>
@@ -1141,10 +1141,11 @@ function Day() {
           </div>
         </div>
       </div>
-      <div className="mt-4 grid gap-3 md:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
           ['Parking', 'Free parking on site. [details placeholder]', <I.pin className="size-5" />],
           ['From Manila', 'About 1.5-2 hrs via CAVITEX / Aguinaldo Hwy. Leave by [time].', <I.arrow className="size-5" />],
+          ['From Lipa', 'About 1 to 1.5 hrs via STAR Tollway / Aguinaldo Hwy.', <I.arrow className="size-5" />],
           ['Weather', 'Tagaytay evenings get cool. Bring a shawl or jacket.', <I.sparkle className="size-5" />],
         ].map(([title, line, icon]) => (
           <article key={title as string} className="rounded-[22px] bg-white p-4 ring-1 ring-line">
@@ -1266,7 +1267,6 @@ const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] =
   ] },
 ]
 
-const AVATAR_TINTS = ['#F6F4FD', '#FDF1F4', '#EEF6F1', '#FFF6E8', '#EEF3FB']
 const HONOR_ROLES = new Set(['Matron of honor', 'Maid of honor', 'Best man'])
 const BRIDE_SIDE = new Set(['Matron of honor', 'Maid of honor', 'Bridesmaid'])
 const NICK_SIDE = new Set(['Best man', 'Groomsman'])
@@ -1276,54 +1276,14 @@ function partyInitial(name: string) {
   return rest.replace(/[^A-Za-z]/g, '')[0] || '•'
 }
 
-function avatarTint(name: string) {
-  let h = 0
-  for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0
-  return AVATAR_TINTS[h % AVATAR_TINTS.length]
-}
-
-const FEMALE_GIVEN = new Set(['marela', 'jennylene', 'erika', 'dulce', 'katrina', 'sophia', 'sofia', 'sofie', 'jennifer', 'lia', 'maria', 'karisha', 'marxia', 'ariane', 'diosel', 'andrea', 'anne', 'anna', 'angela', 'marie', 'mary', 'grace', 'rose', 'joy', 'jane', 'jessica', 'michelle', 'nicole', 'patricia', 'catherine', 'christine', 'diana', 'elena', 'ella', 'emma', 'hannah', 'isabel', 'julia', 'karen', 'kathleen', 'kristine', 'louise', 'luz', 'melissa', 'monica', 'natalie', 'olivia', 'paula', 'rachel', 'regina', 'rina', 'rochelle', 'ruth', 'sandra', 'sarah', 'stephanie', 'teresa', 'theresa', 'valerie', 'vanessa', 'victoria'])
-const FEMALE_HAIR = ['variant02', 'variant04', 'variant08', 'variant10', 'variant23', 'variant28', 'variant36', 'variant37', 'variant39', 'variant41', 'variant43', 'variant45', 'variant46', 'variant47', 'variant57', 'variant58', 'variant63']
-const MALE_HAIR = ['variant01', 'variant06', 'variant07', 'variant15', 'variant17', 'variant24', 'variant44', 'variant60']
-
-function avatarGender(name: string, role: string): 'f' | 'm' {
-  if (/^(mrs|ms|miss)\b/i.test(name)) return 'f'
-  if (/^(mr|ptr|master)\b/i.test(name)) return 'm'
-  if (/ninang|mother|bride|matron|maid of honor|bridesmaid|flower girl/i.test(role)) return 'f'
-  if (/ninong|father|groom|best man|groomsman|ring bearer|bible bearer/i.test(role)) return 'm'
-  const given = name.replace(/^(For\.)\s+/i, '').split(/[\s,]+/)[0].toLowerCase()
-  if (FEMALE_GIVEN.has(given)) return 'f'
-  return 'm'
-}
-
-function dicebear(name: string, role: string, young: boolean, tint: string) {
-  const q = new URLSearchParams({ seed: name, size: '128', radius: '50', backgroundColor: tint.slice(1) })
-  const female = avatarGender(name, role) === 'f'
-  q.set('beardProbability', female || young ? '0' : '40')
-  for (const hair of female ? FEMALE_HAIR : MALE_HAIR) q.append('hairVariant', hair)
-  if (young) {
-    q.set('glassesProbability', '0')
-    q.set('gestureProbability', '0')
-    q.set('scale', '1.2')
-  }
-  return `https://api.dicebear.com/10.x/notionists/svg?${q}`
-}
-
 function honorFirst(people: Guest[]) {
   return people.map((p, i) => ({ p, i })).sort((a, b) => (HONOR_ROLES.has(a.p.role) ? 0 : 1) - (HONOR_ROLES.has(b.p.role) ? 0 : 1) || a.i - b.i).map((x) => x.p)
 }
 
 function GuestFace({ name, className }: { name: string; className?: string }) {
-  const [failed, setFailed] = useState(false)
-  const tint = avatarTint(name)
-  const src = failed ? '' : dicebear(name, '', false, tint)
   return (
-    <span className={cx('grid shrink-0 place-items-center overflow-hidden rounded-full', className)} style={{ background: tint }}>
-      {src ? (
-        <img src={src} alt="" className="size-full object-cover" onError={() => setFailed(true)} />
-      ) : (
-        <span className="text-[12px] font-extrabold text-violet">{partyInitial(name)}</span>
-      )}
+    <span aria-label={`Avatar of ${name}`} className={cx('grid shrink-0 place-items-center overflow-hidden rounded-full bg-[#F6F4FD] text-[13px] font-extrabold text-violet', className)}>
+      {partyInitial(name)}
     </span>
   )
 }
@@ -1547,7 +1507,7 @@ const FAQS = [
   ['Are kids welcome?', '[Placeholder] Only the little ones in our entourage, so parents can enjoy the night.'],
   ['Is there parking?', '[Placeholder] Yes, free parking at both venues. Valet at the reception.'],
   ['Can I take photos during the ceremony?', "We're having an unplugged ceremony. Our photographer has it covered. Snap away at the reception, then add those photos from Snapshots. Only Nick and Rizelle receive them."],
-  ['When should I RSVP?', 'By [RSVP deadline placeholder]. Just like us back at the bottom of this page.'],
+  ['When should I RSVP?', 'By December 20, 2026. Just like us back at the bottom of this page.'],
 ]
 
 function Faq() {
@@ -1740,7 +1700,7 @@ function Reply() {
         <div className="rounded-[28px] bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,.06),0_8px_30px_rgba(0,0,0,.04)] md:p-10">
           <p className="text-[13px] font-medium text-mute">Your turn</p>
           <h2 className="mt-1.5 text-[34px] leading-[1.05] font-extrabold tracking-[-0.025em] md:text-[44px]">Like them back?</h2>
-          <p className="mt-2 text-[15px] text-mute">It's only a match when you reply. Kindly respond by [RSVP deadline].</p>
+          <p className="mt-2 text-[15px] text-mute">It's only a match when you reply. Kindly respond by December 20, 2026.</p>
 
           {rsvp && !editing ? (
             <div className="anim-rise mt-8 rounded-[22px] bg-well p-5">
