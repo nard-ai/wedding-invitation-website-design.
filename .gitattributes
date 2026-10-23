@@ -159,3 +159,4 @@ public/chat-3.jpg -filter -diff -merge
 public/chat-4.jpg -filter -diff -merge
 public/people/*.jpg -filter -diff -merge
 public/photos/*.jpg -filter -diff -merge
+public/photos/*.mp4 -filter -diff -merge

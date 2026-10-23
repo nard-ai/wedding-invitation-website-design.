@@ -918,6 +918,10 @@ function Story() {
                   {THE_YES.map((line) => <p key={line}>{line}</p>)}
                   <p className="pt-3 text-[13px] font-medium text-mute">Nick</p>
                   <p>{YES_CLOSE}</p>
+                  <img src="/photos/yes-hill.jpg" alt="Nick on the hill before the proposal" className="w-full rounded-[22px] object-cover" />
+                  <video src="/photos/yes.mp4" controls playsInline preload="metadata" className="mx-auto block max-h-[68vh] w-auto max-w-full rounded-[22px]" />
+                  <img src="/photos/yes-moment.jpg" alt="Rizelle showing the ring after she said yes" className="w-full rounded-[22px] object-cover" />
+                  <img src="/photos/yes-ring.jpg" alt="The engagement ring with sunflowers" className="w-full rounded-[22px] object-cover" />
                 </>
               )}
             </div>
@@ -1256,7 +1260,7 @@ const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] =
     guest('Ronnel Lopez', 'Groomsman'), guest('Katrina Miguel', 'Bridesmaid', { photo: '/people/katrina-miguel.jpg' }),
     guest('Jhuvert Magnayi', 'Groomsman', { photo: '/people/jhuvert-magnayi.jpg' }), guest('Mary Jane Lopez', 'Bridesmaid', { photo: '/people/mary-jane-lopez.jpg' }),
     guest('Jonald Delos Santos', 'Groomsman', { photo: '/people/jonald-delos-santos.jpg' }), guest('Sophia Lopez', 'Bridesmaid', { photo: '/people/sophia-lopez.jpg' }),
-    guest('Neil Darien Bañez', 'Groomsman', { photo: '/people/neil-darien-banez.jpg' }), guest('Jennifer Lopez', 'Bridesmaid'),
+    guest('Neil Darien Bañez', 'Groomsman', { photo: '/people/neil-darien-banez.jpg' }), guest('Jennifer Lopez', 'Bridesmaid', { photo: '/people/jennifer-lopez.jpg' }),
     guest('Ranjiel Lopez', 'Coin bearer', { photo: '/people/ranjiel-lopez.jpg' }), guest('Diosel Ariane Miguel', 'Coin bearer', { side: 'bride', photo: '/people/diosel-ariane-miguel.jpg' }),
   ] },
   { id: 'little', label: 'Little ones', icon: <MaskIco f="3a1aa.png" />, people: [
