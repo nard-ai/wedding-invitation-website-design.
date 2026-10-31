@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [seats, setSeats] = useState(2)
   const [formErr, setFormErr] = useState('')
   const [saving, setSaving] = useState(false)
+  const [copied, setCopied] = useState('')
 
   useEffect(() => {
     const previous = document.title
@@ -88,6 +89,31 @@ export default function Dashboard() {
     } finally {
       setSaving(false)
     }
+  }
+
+  async function copyLink(code: string) {
+    const link = `${window.location.origin}/?i=${code}`
+    let ok = false
+    try {
+      await navigator.clipboard.writeText(link)
+      ok = true
+    } catch {
+      try {
+        const box = document.createElement('textarea')
+        box.value = link
+        box.setAttribute('readonly', '')
+        box.style.position = 'fixed'
+        box.style.left = '-9999px'
+        document.body.appendChild(box)
+        box.select()
+        ok = document.execCommand('copy')
+        box.remove()
+      } catch {
+        ok = false
+      }
+    }
+    setCopied(ok ? code : '')
+    window.setTimeout(() => setCopied((current) => current === code ? '' : current), 1800)
   }
 
   async function removeInvite(code: string) {
@@ -175,7 +201,12 @@ export default function Dashboard() {
                         : `${invite.reply.name} can't make it`
                       : `Waiting · ${invite.seats} ${invite.seats === 1 ? 'seat' : 'seats'}`}
                   </p>
-                  <p className="mt-1 break-all text-[14px] text-violet">{`${window.location.origin}/?i=${invite.code}`}</p>
+                  <div className="mt-1 flex items-start justify-between gap-3">
+                    <p className="break-all text-[14px] text-violet">{`${window.location.origin}/?i=${invite.code}`}</p>
+                    <button type="button" onClick={() => void copyLink(invite.code)} className="shrink-0 text-[13px] font-medium text-violet">
+                      {copied === invite.code ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
