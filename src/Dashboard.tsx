@@ -3,7 +3,8 @@ import { useEffect, useState, type FormEvent } from 'react'
 const SAVED = 'nr-dashboard-pass'
 
 type Reply = { name: string; email: string; mobile: string; accept: boolean; seats: number; ticket: string }
-type Board = { coming: number; declined: number; seats: number; replies: Reply[] }
+type Invite = { code: string; label: string; seats: number; reply: null | { name: string; accept: boolean; seats: number } }
+type Board = { coming: number; declined: number; seats: number; replies: Reply[]; invites?: Invite[] }
 
 async function openBoard(passphrase: string): Promise<Board> {
   const res = await fetch('/api/dashboard', {
@@ -21,6 +22,10 @@ export default function Dashboard() {
   const [board, setBoard] = useState<Board | null>(null)
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  const [label, setLabel] = useState('')
+  const [seats, setSeats] = useState(2)
+  const [formErr, setFormErr] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     const previous = document.title
@@ -62,6 +67,45 @@ export default function Dashboard() {
     }
   }
 
+  async function saveInvite(e: FormEvent) {
+    e.preventDefault()
+    const passphrase = localStorage.getItem(SAVED) || ''
+    setSaving(true)
+    setFormErr('')
+    try {
+      const res = await fetch('/api/dashboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passphrase, action: 'create', label, seats }),
+      })
+      const data = await res.json().catch(() => ({})) as Board & { error?: string }
+      if (!res.ok) throw new Error(data.error || 'Could not create that link.')
+      setBoard(data)
+      setLabel('')
+      setSeats(2)
+    } catch (error) {
+      setFormErr(error instanceof Error ? error.message : 'Could not create that link.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function removeInvite(code: string) {
+    const passphrase = localStorage.getItem(SAVED) || ''
+    setFormErr('')
+    const res = await fetch('/api/dashboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passphrase, action: 'remove', code }),
+    })
+    const data = await res.json().catch(() => ({})) as Board & { error?: string }
+    if (!res.ok) {
+      setFormErr(data.error || 'Could not remove that link.')
+      return
+    }
+    setBoard(data)
+  }
+
   const submit = (e: FormEvent) => {
     e.preventDefault()
     void unlock(phrase)
@@ -96,7 +140,47 @@ export default function Dashboard() {
         </form>
       ) : (
         <>
-          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <form onSubmit={saveInvite} className="mt-8 rounded-[28px] bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,.06),0_8px_30px_rgba(0,0,0,.04)]">
+            <h2 className="text-[18px] font-extrabold">Invitation links</h2>
+            <p className="mt-1 text-[14px] text-mute">One household, one link. They can reply for up to the seats you set, and not more.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_120px]">
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] font-medium text-mute">Household</span>
+                <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Santos family" className="h-12 w-full rounded-[16px] bg-canvas px-4 text-[15px] outline-none ring-violet transition focus:bg-white focus:ring-2" />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] font-medium text-mute">Seats</span>
+                <input type="number" min={1} max={12} value={seats} onChange={(e) => setSeats(Number(e.target.value))} className="h-12 w-full rounded-[16px] bg-canvas px-4 text-[15px] outline-none ring-violet transition focus:bg-white focus:ring-2" />
+              </label>
+            </div>
+            {formErr && <p className="mt-3 text-[14px] font-medium text-red-600">{formErr}</p>}
+            <button type="submit" disabled={saving || !label.trim()} className="mt-4 h-12 rounded-full bg-violet px-6 text-[15px] font-medium text-white transition hover:bg-violet-deep active:scale-[.98] disabled:opacity-70">
+              {saving ? 'Creating…' : 'Create link'}
+            </button>
+            <ul className="mt-5 divide-y divide-line">
+              {(board.invites || []).length === 0 ? (
+                <li className="py-3 text-[14px] text-mute">No links yet. The guest list can be added here when you have it.</li>
+              ) : (board.invites || []).map((invite) => (
+                <li key={invite.code} className="py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[16px] font-extrabold">{invite.label}</p>
+                    {!invite.reply && (
+                      <button type="button" onClick={() => void removeInvite(invite.code)} className="text-[13px] font-medium text-mute">Remove</button>
+                    )}
+                  </div>
+                  <p className="mt-1 text-[13px] text-mute">
+                    {invite.reply
+                      ? invite.reply.accept
+                        ? `${invite.reply.seats} of ${invite.seats} confirmed by ${invite.reply.name}`
+                        : `${invite.reply.name} can't make it`
+                      : `Waiting · ${invite.seats} ${invite.seats === 1 ? 'seat' : 'seats'}`}
+                  </p>
+                  <p className="mt-1 break-all text-[14px] text-violet">{`${window.location.origin}/?i=${invite.code}`}</p>
+                </li>
+              ))}
+            </ul>
+          </form>
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Stat label="I'm coming" value={board.coming} />
             <Stat label="Can't make it" value={board.declined} />
             <Stat label="Seats saved" value={board.seats} />

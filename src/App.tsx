@@ -248,7 +248,7 @@ function CircleBtn({ kind, size = 'md', onClick, label, className, active }: { k
 }
 
 function IconWell({ icon, label, active, onClick, count, tabId, panelId, tabIndex, onKeyDown }: { icon: ReactNode; label: string; active?: boolean; onClick?: () => void; count?: number; tabId?: string; panelId?: string; tabIndex?: number; onKeyDown?: (e: KeyboardEvent<HTMLButtonElement>) => void }) {
-  const className = "group flex w-[72px] shrink-0 snap-start flex-col items-center gap-1.5 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+  const className = "group flex w-[88px] shrink-0 snap-start flex-col items-center gap-1.5 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
   const body = (
     <>
       <span className="relative">
@@ -839,10 +839,10 @@ function Story() {
             <p className="text-[13px] font-medium text-mute">{PROMPTS.story}…</p>
             <h2 className="mt-1.5 text-[30px] leading-[1.1] font-extrabold tracking-[-0.02em] md:text-[40px]">A like, a reply, and then every day after.</h2>
             <p className="mt-5 text-[16px] leading-relaxed text-mute">
-              [Story placeholder] Nick saw Rizelle’s profile on Facebook Dating in [month, year]. He answered one of her prompts, she wrote back, and the conversation never really stopped.
+              We first started communicating in early 2023, and we have been in touch ever since. On January 7, Nick sent the first message on Facebook Dating, and Rizelle liked him back.
             </p>
             <p className="mt-4 text-[16px] leading-relaxed text-mute">
-              [Second paragraph placeholder — the first date, the moment they knew, the proposal at [place].]
+              On February 12, a month of chats and calls became a first date: lunch, dessert, and a movie. On the morning of December 20, 2025, on a hill in Calatagan, she said yes.
             </p>
             <div className="mt-8 flex gap-1 overflow-x-auto no-scrollbar">
               <IconWell icon={<Ico f="d7d7b.svg" className="h-[23px] w-[25px]" />} label="The like" active={tale === 'like'} onClick={() => { setChat(false); setTale('like') }} />
@@ -1147,8 +1147,8 @@ function Day() {
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ['Parking', 'Free parking on site. [details placeholder]', <I.pin className="size-5" />],
-          ['From Manila', 'About 1.5-2 hrs via CAVITEX / Aguinaldo Hwy. Leave by [time].', <I.arrow className="size-5" />],
+          ['From Balayan', 'About 1 to 1.5 hrs via Tagaytay-Nasugbu Road.', <I.arrow className="size-5" />],
+          ['From Manila', 'About 1.5-2 hrs via CAVITEX / Aguinaldo Hwy. Leave by 12:30 PM.', <I.arrow className="size-5" />],
           ['From Lipa', 'About 1 to 1.5 hrs via STAR Tollway / Aguinaldo Hwy.', <I.arrow className="size-5" />],
           ['Weather', 'Tagaytay evenings get cool. Bring a shawl or jacket.', <I.sparkle className="size-5" />],
         ].map(([title, line, icon]) => (
@@ -1190,11 +1190,11 @@ const SWATCHES = {
   },
   ninangs: {
     colors: [['#C9D9E6', 'Silver'], ['#B5CFE0', 'Pale dusty blue'], ['#97B9D2', 'Dusty blue'], ['#8FABC0', 'Slate blue'], ['#96A6B3', 'Silver gray']],
-    notes: ['Ninangs: a long dress in dusty blue, silver, or gray.', 'Black is not allowed.', 'Please avoid white and any shade of white. Those are for the bride.'],
+    notes: ['A long dress in dusty blue, silver, or gray.', 'Black is not allowed.', 'Please avoid white and any shade of white. Those are for the bride.'],
   },
   ninongs: {
     colors: [['#DDDDDD', 'Light gray'], ['#516C8D', 'Steel blue'], ['#304163', 'Navy'], ['#28385E', 'Deep navy']],
-    notes: ['Ninongs: a gray or navy suit and tie.', 'Black is not allowed.', 'Please avoid white and any shade of white. Those are for the bride.'],
+    notes: ['A gray or navy suit and tie.', 'Black is not allowed.', 'Please avoid white and any shade of white. Those are for the bride.'],
   },
 } as const
 
@@ -1236,7 +1236,7 @@ const guest = (name: string, role: string, extra?: Pick<Guest, 'photo' | 'alone'
 const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] = [
   { id: 'couple', label: 'Couple', icon: <MaskIco f="bb73e.png" />, people: [guest('Dionnel Niko Miguel', 'Groom', { photo: '/photos/nick-profile.jpg' }), guest('Rizelle Gonzaga Lopez', 'Bride', { photo: '/photos/rizelle-profile.jpg' })] },
   { id: 'parents', label: 'Parents', icon: <MaskIco f="63cfb.png" />, people: [guest('Dionisio M. Miguel', 'Father of the groom'), guest('Elsie A. Miguel', 'Mother of the groom'), guest('Emeterio F. Lopez', 'Father of the bride'), guest('Rizalminda G. Lopez', 'Mother of the bride')] },
-  { id: 'principal', label: 'Principal', icon: <MaskIco f="f3d9b.png" />, people: [
+  { id: 'principal', label: 'Primary Sponsors', icon: <MaskIco f="f3d9b.png" />, people: [
     guest('Mr. Bernard Sahagun', 'Ninong'), guest('Mrs. Elizabeth Sahagun', 'Ninang'),
     guest('Mr. Jimmy Almiranes', 'Ninong'), guest('Mrs. Jeannette Almiranes', 'Ninang'),
     guest('Mr. Rodrigo Mendoza', 'Ninong'), guest('Mrs. Marilou Mendoza', 'Ninang'),
@@ -1249,7 +1249,7 @@ const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] =
     guest('For. Editha Eusebio', 'Ninang'),
     guest('Ptr. Arvin Martin', 'Wedding officiant', { alone: true }),
   ] },
-  { id: 'secondary', label: 'Secondary', icon: <MaskIco f="f5390.png" />, people: [
+  { id: 'secondary', label: 'Secondary Sponsors', icon: <MaskIco f="f5390.png" />, people: [
     guest('Richard Damian', 'Candle', { photo: '/people/richard-damian.jpg' }), guest('Marela Laarni Holgado', 'Candle'),
     guest('Edriane Joelle Agorilla', 'Veil', { photo: '/people/edriane-joelle-agorilla.jpg' }), guest('Jennylene Lopez', 'Veil', { photo: '/people/jennylene-lopez.jpg' }),
     guest('John Edrian Marasigan', 'Cord', { photo: '/people/john-edrian-marasigan.jpg' }), guest('Erika Grace Banuelos', 'Cord', { photo: '/people/erika-grace-banuelos.jpg' }),
@@ -1257,7 +1257,7 @@ const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] =
   { id: 'party', label: 'Wedding party', icon: <MaskIco f="d7d7b.svg" className="h-[23px] w-[25px]" />, people: [
     guest('Jan Angela Reveral', 'Matron of honor', { photo: '/people/jan-angela-reveral.jpg' }), guest('Dulce Amor Laroza', 'Maid of honor', { photo: '/people/dulce-amor-laroza.jpg' }),
     guest('Jose Maisa III', 'Best man', { photo: '/people/jose-maisa.jpg' }), guest('Jomer Flores', 'Best man', { photo: '/people/jomer-flores.jpg' }),
-    guest('Ronnel Lopez', 'Groomsman'), guest('Katrina Miguel', 'Bridesmaid', { photo: '/people/katrina-miguel.jpg' }),
+    guest('Ronnel Lopez', 'Groomsman', { photo: '/people/ronnel-lopez.jpg' }), guest('Katrina Miguel', 'Bridesmaid', { photo: '/people/katrina-miguel.jpg' }),
     guest('Jhuvert Magnayi', 'Groomsman', { photo: '/people/jhuvert-magnayi.jpg' }), guest('Mary Jane Lopez', 'Bridesmaid', { photo: '/people/mary-jane-lopez.jpg' }),
     guest('Jonald Delos Santos', 'Groomsman', { photo: '/people/jonald-delos-santos.jpg' }), guest('Sophia Lopez', 'Bridesmaid', { photo: '/people/sophia-lopez.jpg' }),
     guest('Neil Darien Bañez', 'Groomsman', { photo: '/people/neil-darien-banez.jpg' }), guest('Jennifer Lopez', 'Bridesmaid', { photo: '/people/jennifer-lopez.jpg' }),
@@ -1508,9 +1508,9 @@ function Photos() {
 
 const FAQS = [
   ['Can I bring a plus-one?', "Your invitation shows the number of seats we've saved for you. We'd love to keep it to that."],
-  ['Are kids welcome?', '[Placeholder] Only the little ones in our entourage, so parents can enjoy the night.'],
-  ['Is there parking?', '[Placeholder] Yes, free parking at both venues. Valet at the reception.'],
-  ['Can I take photos during the ceremony?', "We're having an unplugged ceremony. Our photographer has it covered. Snap away at the reception, then add those photos from Snapshots. Only Nick and Rizelle receive them."],
+  ['Are kids welcome?', 'Only selected children are invited, including the little ones in our entourage. We kindly ask that other children stay home, so every guest can enjoy the celebration.'],
+  ['Is there parking?', 'Free parking is available on a first-come, first-served basis. A member of our team will be there to assist you. Valet service will not be provided.'],
+  ['Can I take photos during the ceremony?', "We're having an unplugged ceremony. Our photographer has it covered, together with selected members of our entourage who will serve as content creators and third-person photographers. Snap away at the reception, then add those photos from Snapshots. Only Nick and Rizelle receive them."],
   ['When should I RSVP?', 'By December 20, 2026. Just like us back at the bottom of this page.'],
 ]
 
@@ -1626,6 +1626,9 @@ const inputCls = 'h-12 w-full rounded-[16px] bg-canvas px-4 text-[15px] outline-
 
 function Reply() {
   const { rsvp, setRsvp } = useLikes()
+  const inviteCode = new URLSearchParams(window.location.search).get('i')?.trim().toLowerCase() || ''
+  const [party, setParty] = useState<null | { label: string; seats: number }>(null)
+  const [partyState, setPartyState] = useState<'ready' | 'loading' | 'missing'>(inviteCode ? 'loading' : 'ready')
   const [editing, setEditing] = useState(false)
   const [f, setF] = useState({ name: '', email: '', mobile: '', msg: '' })
   const [accept, setAccept] = useState<boolean | null>(null)
@@ -1636,6 +1639,25 @@ function Reply() {
   const [sheet, setSheet] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const ref = useReveal<HTMLElement>()
+  const seatMax = party?.seats ?? 4
+
+  useEffect(() => {
+    if (!inviteCode) return
+    let gone = false
+    fetch(`/api/invites?code=${encodeURIComponent(inviteCode)}`)
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({})) as { label?: string; seats?: number }
+        if (gone) return
+        if (!res.ok || !data.label || !data.seats) setPartyState('missing')
+        else {
+          setParty({ label: data.label, seats: data.seats })
+          setSeats((current) => Math.min(data.seats || 1, Math.max(1, current)))
+          setPartyState('ready')
+        }
+      })
+      .catch(() => { if (!gone) setPartyState('missing') })
+    return () => { gone = true }
+  }, [inviteCode])
 
   useEffect(() => {
     let gone = false
@@ -1645,7 +1667,7 @@ function Reply() {
         const saved = await fetch('/api/rsvps', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: rsvp.name, email: rsvp.email, mobile: rsvp.mobile, accept: rsvp.accept, seats: rsvp.seats, message: rsvp.msg || '' }),
+          body: JSON.stringify({ name: rsvp.name, email: rsvp.email, mobile: rsvp.mobile, accept: rsvp.accept, seats: rsvp.seats, message: rsvp.msg || '', invite: inviteCode || undefined }),
         })
         if (saved.ok) localStorage.setItem('nr-rsvp-synced', stamp)
       }
@@ -1654,7 +1676,7 @@ function Reply() {
     }
     void load().catch(() => {})
     return () => { gone = true }
-  }, [rsvp])
+  }, [rsvp, inviteCode])
 
   const startEdit = () => {
     if (!rsvp) return
@@ -1683,7 +1705,7 @@ function Reply() {
       const res = await fetch('/api/rsvps', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: f.name.trim(), email: f.email.trim(), mobile: f.mobile.trim(), accept, seats: accept ? seats : 0, message: msg }),
+        body: JSON.stringify({ name: f.name.trim(), email: f.email.trim(), mobile: f.mobile.trim(), accept, seats: accept ? seats : 0, message: msg, invite: inviteCode || undefined }),
       })
       const data = await res.json()
       if (!res.ok) return setErr(data.error || 'Could not save your reply. Try again.')
@@ -1705,8 +1727,13 @@ function Reply() {
           <p className="text-[13px] font-medium text-mute">Your turn</p>
           <h2 className="mt-1.5 text-[34px] leading-[1.05] font-extrabold tracking-[-0.025em] md:text-[44px]">Like them back?</h2>
           <p className="mt-2 text-[15px] text-mute">It's only a match when you reply. Kindly respond by December 20, 2026.</p>
+          {party && <p className="mt-3 text-[15px] font-medium">{party.seats} {party.seats === 1 ? 'seat is' : 'seats are'} saved for {party.label}.</p>}
 
-          {rsvp && !editing ? (
+          {partyState === 'loading' ? (
+            <p className="mt-8 text-[15px] text-mute">Checking your invitation…</p>
+          ) : partyState === 'missing' ? (
+            <p className="mt-8 text-[15px] text-mute">This invitation link is not valid. Ask Nick and Rizelle for a new one.</p>
+          ) : rsvp && !editing ? (
             <div className="anim-rise mt-8 rounded-[22px] bg-well p-5">
               <p className="text-[18px] font-extrabold">{rsvp.accept ? "It's a match 💜" : "We'll save you a slice."}</p>
               <p className="mt-1 text-[14px] text-mute">
@@ -1743,7 +1770,7 @@ function Reply() {
                     <div className="flex items-center gap-3">
                       <button type="button" aria-label="Fewer" onClick={() => setSeats((s) => Math.max(1, s - 1))} className="grid size-9 place-items-center rounded-full bg-white text-mute active:scale-90"><I.minus className="size-4" /></button>
                       <span className="w-5 text-center text-[17px] font-extrabold tabular-nums">{seats}</span>
-                      <button type="button" aria-label="More" onClick={() => setSeats((s) => Math.min(4, s + 1))} className="grid size-9 place-items-center rounded-full bg-white text-mute active:scale-90"><I.plus className="size-4" /></button>
+                      <button type="button" aria-label="More" onClick={() => setSeats((s) => Math.min(seatMax, s + 1))} className="grid size-9 place-items-center rounded-full bg-white text-mute active:scale-90"><I.plus className="size-4" /></button>
                     </div>
                   </div>
                 </div>

@@ -15,6 +15,40 @@ function readBody(req: IncomingMessage) {
   })
 }
 
+type Sql = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<Record<string, unknown>[]>
+
+async function saveInvited(sql: Sql, input: { name: string; email: string; mobile: string; accept: boolean; seats: number; message: string; inviteId: string }) {
+  const existing = await sql`
+    SELECT id, email, invite_id::text AS invite_id
+    FROM rsvps
+    WHERE invite_id = ${input.inviteId}::uuid OR email = ${input.email}
+  `
+  const owned = existing.find((row) => String(row.invite_id || '') === input.inviteId)
+  const emailRow = existing.find((row) => String(row.email) === input.email)
+  if (emailRow && (!owned || String(emailRow.id) !== String(owned.id))) return null
+  const target = owned || emailRow
+  if (target) {
+    return sql`
+      UPDATE rsvps SET
+        name = ${input.name},
+        email = ${input.email},
+        mobile = ${input.mobile},
+        accept = ${input.accept},
+        seats = ${input.seats},
+        message = ${input.message},
+        invite_id = ${input.inviteId}::uuid,
+        updated_at = now()
+      WHERE id = ${String(target.id)}::uuid
+      RETURNING name, email, mobile, accept, seats, ticket, message
+    `
+  }
+  return sql`
+    INSERT INTO rsvps (name, email, mobile, accept, seats, message, invite_id)
+    VALUES (${input.name}, ${input.email}, ${input.mobile}, ${input.accept}, ${input.seats}, ${input.message}, ${input.inviteId}::uuid)
+    RETURNING name, email, mobile, accept, seats, ticket, message
+  `
+}
+
 function connectionString() {
   const raw = (process.env.DATABASE_URL || '').trim().replace(/^["']|["']$/g, '')
   const url = raw.replace(/([?&])channel_binding=[^&]*&?/g, '$1').replace(/[?&]$/, '')
@@ -57,20 +91,42 @@ export async function handleRsvp(req: IncomingMessage, res: ServerResponse) {
     if (!/\S+@\S+\.\S+/.test(email)) return json(res, 400, { error: 'Add a valid email.' })
     if (mobile.replace(/\D/g, '').length < 10) return json(res, 400, { error: 'Add your mobile number.' })
     if (typeof accept !== 'boolean') return json(res, 400, { error: 'Tap the heart or the X to reply.' })
-    const seats = accept ? Math.min(4, Math.max(1, Number(body.seats) || 1)) : 0
+    const code = String(body.invite || '').trim().toLowerCase()
+    let cap = 4
+    let inviteId: string | null = null
+    if (code) {
+      if (!/^[a-z0-9]{8}$/.test(code)) return json(res, 404, { error: 'This invitation link is not valid.' })
+      const found = await sql`SELECT id, seats FROM invites WHERE code = ${code}`
+      const invite = found[0]
+      if (!invite) return json(res, 404, { error: 'This invitation link is not valid.' })
+      inviteId = String(invite.id)
+      cap = Number(invite.seats)
+    } else {
+      const linked = await sql`
+        SELECT i.seats
+        FROM rsvps r
+        JOIN invites i ON i.id = r.invite_id
+        WHERE r.email = ${email}
+      `
+      if (linked[0]) cap = Number(linked[0].seats)
+    }
+    const seats = accept ? Math.min(cap, Math.max(1, Number(body.seats) || 1)) : 0
 
-    const rows = await sql`
-      INSERT INTO rsvps (name, email, mobile, accept, seats, message)
-      VALUES (${name}, ${email}, ${mobile}, ${accept}, ${seats}, ${message})
-      ON CONFLICT (email) DO UPDATE SET
-        name = EXCLUDED.name,
-        mobile = EXCLUDED.mobile,
-        accept = EXCLUDED.accept,
-        seats = EXCLUDED.seats,
-        message = EXCLUDED.message,
-        updated_at = now()
-      RETURNING name, email, mobile, accept, seats, ticket, message
-    `
+    const rows = inviteId
+      ? await saveInvited(sql as unknown as Sql, { name, email, mobile, accept, seats, message, inviteId })
+      : await sql`
+          INSERT INTO rsvps (name, email, mobile, accept, seats, message)
+          VALUES (${name}, ${email}, ${mobile}, ${accept}, ${seats}, ${message})
+          ON CONFLICT (email) DO UPDATE SET
+            name = EXCLUDED.name,
+            mobile = EXCLUDED.mobile,
+            accept = EXCLUDED.accept,
+            seats = EXCLUDED.seats,
+            message = EXCLUDED.message,
+            updated_at = now()
+          RETURNING name, email, mobile, accept, seats, ticket, message
+        `
+    if (rows === null) return json(res, 409, { error: 'This email already replied on another invitation.' })
     const row = rows[0]
     if (!row) return json(res, 500, { error: 'Could not save your reply. Try again.' })
     json(res, 200, {
