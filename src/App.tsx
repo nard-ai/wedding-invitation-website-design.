@@ -1185,37 +1185,79 @@ function Day() {
 
 const SWATCHES = {
   guests: {
-    colors: [['#EEDDFF', 'Lilac'], ['#DCCEFF', 'Lavender'], ['#AED0FE', 'Periwinkle'], ['#BCE1FE', 'Powder blue'], ['#CDF1FF', 'Sky blue']],
+    colors: [
+      ['#EEDDFF', 'Lilac', '/attire/guest-lilac.jpg'],
+      ['#DCCEFF', 'Lavender', '/attire/guest-lavender.jpg'],
+      ['#AED0FE', 'Periwinkle', '/attire/guest-periwinkle.jpg'],
+      ['#BCE1FE', 'Powder blue', '/attire/guest-powder-blue.jpg'],
+      ['#CDF1FF', 'Sky blue', '/attire/guest-sky-blue.jpg'],
+    ],
     notes: ['Semi-formal or casual that fits a garden setting, in these colors.', 'Black is not allowed.', 'Please avoid white and any shade of white. Those are for the bride.'],
   },
   ninangs: {
-    colors: [['#C9D9E6', 'Silver'], ['#B5CFE0', 'Pale dusty blue'], ['#97B9D2', 'Dusty blue'], ['#8FABC0', 'Slate blue'], ['#96A6B3', 'Silver gray']],
+    colors: [
+      ['#C9D9E6', 'Silver', '/attire/ninang-silver.jpg'],
+      ['#B5CFE0', 'Pale dusty blue', '/attire/ninang-pale-dusty.jpg'],
+      ['#97B9D2', 'Dusty blue', '/attire/ninang-dusty.jpg'],
+      ['#8FABC0', 'Slate blue', '/attire/ninang-slate.jpg'],
+      ['#96A6B3', 'Silver gray', '/attire/ninang-silver-gray.jpg'],
+    ],
     notes: ['A long dress in dusty blue, silver, or gray.', 'Black is not allowed.', 'Please avoid white and any shade of white. Those are for the bride.'],
   },
   ninongs: {
-    colors: [['#DDDDDD', 'Light gray'], ['#516C8D', 'Steel blue'], ['#304163', 'Navy'], ['#28385E', 'Deep navy']],
+    colors: [
+      ['#DDDDDD', 'Light gray', '/attire/ninong-light-gray.jpg'],
+      ['#516C8D', 'Steel blue', '/attire/ninong-steel.jpg'],
+      ['#304163', 'Navy', '/attire/ninong-navy.jpg'],
+      ['#28385E', 'Deep navy', '/attire/ninong-deep-navy.jpg'],
+    ],
     notes: ['A gray or navy suit and tie.', 'Black is not allowed.', 'Please avoid white and any shade of white. Those are for the bride.'],
   },
 } as const
 
+function canHover() {
+  return window.matchMedia('(hover: hover)').matches
+}
+
+function ColorSwatch({ color, name, open, onShow }: { color: string; name: string; open: boolean; onShow: (toggle: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      className="flex flex-col items-center gap-2"
+      aria-expanded={open}
+      aria-label={`See the ${name} outfit`}
+      onMouseEnter={() => { if (canHover()) onShow(false) }}
+      onFocus={() => { if (canHover()) onShow(false) }}
+      onPointerUp={(e) => { if (e.pointerType !== 'mouse') onShow(true) }}
+    >
+      <span className={cx('size-16 rounded-full shadow-inner ring-4 md:size-20', open ? 'ring-violet' : 'ring-canvas')} style={{ background: color }} />
+      <span className="text-[12px] font-medium text-mute">{name}</span>
+    </button>
+  )
+}
+
 function Attire() {
   const [tab, setTab] = useState<keyof typeof SWATCHES>('guests')
+  const [look, setLook] = useState<string | null>(null)
   const s = SWATCHES[tab]
+  const shown = s.colors.find(([, n]) => n === look)
   return (
     <PromptCard id="attire" answer="Soft lilac and blue." className="mx-auto max-w-6xl">
       <div className="mt-6 flex flex-wrap gap-2">
-        <Pill active={tab === 'guests'} onClick={() => setTab('guests')}>Guests</Pill>
-        <Pill active={tab === 'ninangs'} onClick={() => setTab('ninangs')}>Ninangs</Pill>
-        <Pill active={tab === 'ninongs'} onClick={() => setTab('ninongs')}>Ninongs</Pill>
+        <Pill active={tab === 'guests'} onClick={() => { setTab('guests'); setLook(null) }}>Guests</Pill>
+        <Pill active={tab === 'ninangs'} onClick={() => { setTab('ninangs'); setLook(null) }}>Ninangs</Pill>
+        <Pill active={tab === 'ninongs'} onClick={() => { setTab('ninongs'); setLook(null) }}>Ninongs</Pill>
       </div>
-      <div key={tab} className="anim-fade mt-8 grid gap-8 md:grid-cols-2">
-        <div className="flex flex-wrap gap-5">
-          {s.colors.map(([c, n]) => (
-            <div key={n} className="flex flex-col items-center gap-2">
-              <span className="size-16 rounded-full shadow-inner ring-4 ring-canvas md:size-20" style={{ background: c }} />
-              <span className="text-[12px] font-medium text-mute">{n}</span>
-            </div>
-          ))}
+      <div key={tab} className="anim-fade mt-8 grid gap-8 md:grid-cols-2" onMouseLeave={() => { if (canHover()) setLook(null) }}>
+        <div>
+          {shown && (
+            <img src={shown[2]} alt={`${shown[1]} outfit`} className="mb-5 h-72 w-48 rounded-[22px] object-cover object-top shadow-[0_8px_30px_rgba(0,0,0,.12)]" />
+          )}
+          <div className="flex flex-wrap gap-5">
+            {s.colors.map(([c, n]) => (
+              <ColorSwatch key={n} color={c} name={n} open={look === n} onShow={(toggle) => setLook((cur) => (toggle && cur === n ? null : n))} />
+            ))}
+          </div>
         </div>
         <ul className="space-y-3">
           {s.notes.map((n) => (
