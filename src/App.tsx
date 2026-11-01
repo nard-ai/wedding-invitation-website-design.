@@ -1415,6 +1415,11 @@ function GuestPhotoDrop() {
       <div className="min-w-0">
         <h3 className="text-[20px] font-extrabold tracking-[-0.02em]">Send them the ones you take.</h3>
         <p className="mt-2 max-w-md text-[15px] leading-relaxed text-mute">On the day, add your photos to Nick &amp; Rizelle's folder. Only they receive the copies.</p>
+        <p className="mt-4 max-w-md text-[15px] leading-relaxed text-mute">If you post on social media, kindly tag us with these hashtags.</p>
+        <ul className="mt-2 max-w-md space-y-1 text-[15px] font-medium leading-snug [overflow-wrap:anywhere]">
+          <li>#NIKOtadhanangmagkapaRIZ</li>
+          <li>#DIONceinalifetimeZELLEbration</li>
+        </ul>
         <a href={GUEST_PHOTO_FOLDER} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex h-12 items-center gap-2 rounded-full bg-violet px-5 text-[15px] font-medium text-white transition hover:bg-violet-deep active:scale-[.98]">
           Add your photos
           <I.arrow className="size-4" />
