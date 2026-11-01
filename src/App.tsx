@@ -765,22 +765,13 @@ const FIRST_CHATS = [
 ]
 
 const NICK_YES = [
-  "Before the new year began in 2023, one of my prayers was that the Lord would give me a love meant to last forever. Someone I could match with for life.",
-  "Same faith, same vibe, and someone I could really get along with in everything.",
-  "I had already tried a dating app, but something felt missing. There were no real limits, and it did not feel legitimate. On Facebook Dating, you can be more sure the profile you are talking to is really theirs.",
-  "When the new year came, I was scrolling Facebook and tried Facebook Dating. This time I filtered for what I wanted, and I put in the details of the person I hoped to match with.",
-  "I also widened the location radius, because I had a feeling my forever was outside Cavite. As if she would have her own car.",
-  "Then, in the first week of January, Facebook notified me. I had matched with Rizelle's profile. I stayed on it for a long time. I saw that she is a Christian, and an engineer too. There were coffee photos. She is a coffee lover. And there were stunning nature photos of her.",
-  "Of course I messaged her right away. You can only send a message once the two of you have matched.",
-  "And the rest was history. Rizelle was the answer to that prayer.",
-  "The Lord matched us. That is how strong we are in Him. God is good all the time.",
+  "Before 2023 began, I prayed for a lifelong partner, someone who shared my faith, vibe, and values. Having tried other dating apps without success, I decided to try Facebook Dating on New Year's Day, filtering for my ideal match and expanding my location radius with a strong feeling that my future wife was outside Cavite.",
+  "In the first week of January, Facebook notified me of a match: Rizelle. Looking through her profile, I saw she was a Christian, an engineer, a nature enthusiast, and a fellow coffee lover. I messaged her right away, and the rest is history. Rizelle was the direct answer to my prayer, a true reminder that God is good all the time.",
 ]
 
 const RIZELLE_YES = [
-  "As a hopeless romantic and a Wattpad girl, I wrote down the qualities of my ideal man, then prayed for them. At first I was hesitant about Facebook Dating, because I felt it would not be an organic encounter. Haha. My best friend was the one who talked me into it.",
-  "I created a profile, then filtered possible matches by the list of qualities I had prayed to the Lord for. To keep a short list, I only scrolled through the people who had already liked me. At least I knew they were already interested in my profile. Haha.",
-  "When I came across Nick's profile (Dion), I thought for a few minutes about whether I would like him back. Same age, same faith, same field of work, a music lover, a non-smoker, and an occasional drinker. It looked right, so I liked him back.",
-  "Then on January 7, 2023, around 10 PM, he messaged me through the dating app.",
+  "As a hopeless romantic, I had always dreamed of a love story that felt written in the stars. I even came up with a list of the qualities I prayed for in an ideal partner. At first, I was skeptical about Facebook Dating, as it didn't exactly fit my idea of a sweet and organic meet-cute, but my best friend told me to give it a try.",
+  "I was determined to stay true and stick to my list. To make it easier, I decided to only browse through the profiles of people who had already liked me. When I came across Nick's profile (aka Dion), I paused. Same age, same faith, same profession, a fellow music lover, non-smoker, and an occasional drinker. His qualities matched every \"non-negotiable\" on the list I prayed for. I took a breath and swiped right. Then, on January 7, 2023, around 10 PM, I got notified by his first message.",
 ]
 
 const FIRST_DATE = [
@@ -788,16 +779,16 @@ const FIRST_DATE = [
 ]
 
 const NICK_PROPOSAL = [
-  "I started planning the proposal last year, because I wanted to give Rizelle the moment I had been waiting to give her. She had dropped hints about the engagement ring she wanted. She never said it outright. She made me guess the exact diamond cut, and she said that cut represented her.",
-  "Once I was sure of the cut, I looked for a place to have the ring made without her finding out. My excuse was that I was only going out to pay the house bills. I still ended up in Lipa, coordinating with jewelry shops.",
-  "When the ring was nearly finished, I decided I would propose in December, any day that month. I did not want to wait any longer, so I moved it to before Christmas. Before that, I asked her parents and told them I was going to propose to Rizelle this December.",
-  "A week before the proposal, I had the ring. I got serious about hiding it. Then Rizelle dreamed that I had already proposed. I thought she had found the hiding place, and I was very nervous. She had not found it. In my head I said, \"Next week. That is when I give it to her.\"",
-  "I booked a place full of trees, with a beautiful view, where the two of us would be the only guests. Intimate.",
+  "Last year, I began planning a proposal meant to give Rizelle the moment of her dreams. She had cleverly dropped hints about her ideal ring, challenging me to guess the specific diamond cut she felt reflected her personality.",
+  "After identifying the cut, I discreetly arranged to have the ring crafted in Lipa, using routine errands like paying bills as my cover. Eager to pop the question, I moved the timeline up to just before Christmas in December. But before I finalized my plans, I had a heartfelt conversation with her parents and asked for their blessing.",
+  "A week before the big day, with the ring safely in hand, out of nowhere, Rizelle mentioned a dream where I had already proposed. I thought she had discovered my hiding spot! When I realized the secret was still safe, I counted down the days, \"next week is the moment.\"",
+  "To make it unforgettable, I booked an intimate, tree-covered venue with a breathtaking view, just the two of us, completely private.",
 ]
 
 const THE_YES = [
-  "The night before the proposal, Nick asked if we could go out and watch the sunrise. I said yes. We had never done that. One catch: we did not leave the house until 8 AM. The sun was already high, and very much awake. We went anyway, because he said the place was already booked. A hill in Calatagan.",
-  "The clue was a pink tripod. Nick does not bring tripods. We are not a photos-and-TikTok couple. He set the phone up, stepped behind me, and when I turned around he was already on one knee. The plot twist got there first. Before he could ask, and before I could answer, the whole camera setup fell over.",
+  "The night before, Nick asked if we could go out and watch the sunrise together. I excitedly said yes because it's something we had never done before. The catch? I thought we'd watch the sunrise, but it was already 8 AM and the sun was already up, shining brightly by the time we actually left. We still went anyway, because he insisted the place on a hill in Calatagan was already booked.",
+  "My first real clue that something was up was a pink tripod. Nick does not do tripods because we are definitely not a \"photos-and-TikTok\" couple. He then set up the phone and stepped behind me. When I turned around, he was already down on one knee.",
+  "But right before he could speak, and before I could even say yes, the tripod tipped over and the whole setup crashed down, adding an unexpected plot twist to the proposal.",
 ]
 
 const YES_CLOSE = "In the morning of December 20, 2025, she said yes. The size and the design of the ring were exactly right. A princess cut, because she is a Disney princess, and soon to be my queen."
