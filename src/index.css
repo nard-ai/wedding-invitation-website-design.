@@ -12,8 +12,8 @@
   --color-well: #f6f4fd;
 }
 
-html { scroll-behavior: smooth; scroll-padding-top: 96px; }
-body { background: var(--color-canvas); color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; overflow-x: clip; }
+body { background: var(--color-canvas); color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; overflow-x: clip; }
 
 @keyframes rise { from { opacity: 0; transform: translateY(32px) scale(.97); } to { opacity: 1; transform: none; } }
 @keyframes drop { from { opacity: 0; transform: translateY(-24px) scale(.96); } to { opacity: 1; transform: none; } }

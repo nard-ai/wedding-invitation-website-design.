@@ -287,7 +287,7 @@ function PromptCard({ id, answer, aside, children, className, bare }: { id: stri
   const on = liked.has(id)
   const [k, setK] = useState(0)
   return (
-    <section id={id} ref={ref} className={cx('reveal relative', className)}>
+    <section id={id} ref={ref} className={cx('reveal relative min-w-0', className)}>
       <div className={cx('relative rounded-[28px] bg-white', !bare && 'p-6 md:p-10', 'shadow-[0_1px_2px_rgba(0,0,0,.06),0_8px_30px_rgba(0,0,0,.04)]')}>
         {!bare && (
           <div className={cx(aside ? 'flex flex-wrap items-start justify-between gap-x-4 gap-y-2' : false)}>
@@ -828,23 +828,23 @@ function Story() {
   }
   return (
     <PromptCard id="story" bare className="mx-auto max-w-6xl">
-      <div className="grid overflow-hidden md:grid-cols-2">
+      <div className="grid min-w-0 overflow-hidden md:grid-cols-2">
         <div className="relative m-3 h-[380px] overflow-hidden rounded-[22px] md:h-auto md:min-h-[520px]">
           <img src={STORY_PHOTO} alt="Nick and Rizelle" className="absolute inset-0 size-full object-cover" />
           <span className="absolute top-4 left-4 rounded-full bg-white/75 px-3 py-1.5 text-[12px] font-medium backdrop-blur-xl">Nick & Rizelle</span>
         </div>
-        <div className="relative p-6 md:p-12">
+        <div className="relative min-w-0 p-6 md:p-12">
           <span aria-hidden className="pointer-events-none absolute -top-2 right-4 text-[120px] leading-none font-extrabold tracking-[-0.06em] text-well select-none md:text-[180px]">2027</span>
           <div className="relative">
             <p className="text-[13px] font-medium text-mute">{PROMPTS.story}…</p>
             <h2 className="mt-1.5 text-[30px] leading-[1.1] font-extrabold tracking-[-0.02em] md:text-[40px]">A like, a reply, and then every day after.</h2>
             <p className="mt-5 text-[16px] leading-relaxed text-mute">
-              We first started communicating in early 2023, and we have been in touch ever since. On January 7, Nick sent the first message on Facebook Dating, and Rizelle liked him back.
+              Nick and Rizelle first started communicating in early 2023, and they have been in touch ever since. On January 7, Nick sent the first message on Facebook Dating, and Rizelle liked him back.
             </p>
             <p className="mt-4 text-[16px] leading-relaxed text-mute">
-              On February 12, a month of chats and calls became a first date: lunch, dessert, and a movie. On the morning of December 20, 2025, on a hill in Calatagan, she said yes.
+              On February 12, a month of chats and calls became a first date: lunch, dessert, and a movie. On the morning of December 20, 2025, on a hill in Calatagan, Rizelle said yes.
             </p>
-            <div className="mt-8 flex gap-1 overflow-x-auto no-scrollbar">
+            <div className="mt-8 flex min-w-0 gap-1 overflow-x-auto no-scrollbar">
               <IconWell icon={<Ico f="d7d7b.svg" className="h-[23px] w-[25px]" />} label="The like" active={tale === 'like'} onClick={() => { setChat(false); setTale('like') }} />
               <IconWell icon={<Ico f="84fc6.svg" className="size-[31px]" />} label="First message" active={chat} onClick={() => { setTale(null); setEnds({ start: true, end: false }); setChat(true) }} />
               <IconWell icon={<Ico f="24833.svg" className="size-[39px]" />} label="First date" active={tale === 'date'} onClick={() => { setChat(false); setTale('date') }} />
@@ -1125,8 +1125,8 @@ function Day() {
           </div>
         </div>
       </div>
-      <div className="anim-rise mt-5" style={{ animationDelay: '160ms' }}>
-        <div className="no-scrollbar -mx-2 overflow-x-auto px-2 snap-x snap-mandatory">
+      <div className="anim-rise mt-5 min-w-0" style={{ animationDelay: '160ms' }}>
+        <div className="no-scrollbar -mx-2 min-w-0 overflow-x-auto px-2 snap-x snap-mandatory">
           <div className="relative flex w-max items-center gap-3 pb-1">
             <div aria-hidden className="absolute top-5 right-8 left-8 border-t border-dashed border-violet" />
             {days > 0 && <p className="relative z-[1] shrink-0 rounded-full bg-canvas px-3 py-1.5 text-[13px] text-mute">Starts in {days} days</p>}
@@ -1378,7 +1378,7 @@ function Party() {
   const card = (person: Guest) => <PersonCard key={person.name + person.role} person={person} young={young} delay={(n++) * 40} />
   return (
     <PromptCard id="party" answer="The people who got us here." className="mx-auto max-w-6xl">
-      <div role="tablist" aria-label="Our people" className="no-scrollbar mt-5 -mx-2 flex snap-x snap-mandatory gap-1 overflow-x-auto px-2 pt-3 pb-1">
+      <div role="tablist" aria-label="Our people" className="no-scrollbar mt-5 -mx-2 flex min-w-0 snap-x snap-mandatory gap-1 overflow-x-auto px-2 pt-3 pb-1">
         {PARTY.map((p, i) => (
           <IconWell key={p.id} icon={p.icon} label={p.label} count={p.people.length} active={g === i} onClick={() => pick(i)} tabId={`party-tab-${p.id}`} panelId="party-panel" tabIndex={g === i ? 0 : -1} onKeyDown={(e) => onTabKey(e, i)} />
         ))}
@@ -1945,7 +1945,7 @@ function Invitation() {
       {opened && (
         <>
           <NavBar audioRef={audioRef} playing={playing} onToggle={toggleSong} />
-          <main className="space-y-10 px-4 pb-28 md:space-y-14 md:pb-16">
+          <main className="min-w-0 space-y-10 overflow-x-clip px-4 pb-28 md:space-y-14 md:pb-16">
             <Hero />
             <Quote />
             <Story />
