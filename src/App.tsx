@@ -1750,6 +1750,7 @@ function Reply() {
           <h2 className="mt-1.5 text-[34px] leading-[1.05] font-extrabold tracking-[-0.025em] md:text-[44px]">Like them back?</h2>
           <p className="mt-2 text-[15px] text-mute">It's only a match when you reply. Kindly respond by December 20, 2026.</p>
           {party && <p className="mt-3 text-[15px] font-medium">{party.seats} {party.seats === 1 ? 'seat is' : 'seats are'} saved for {party.label}.</p>}
+          {party && !(rsvp && !editing) && <p className="mt-3 text-[15px] leading-relaxed text-mute">This link is reserved for you and your companions. Please do not forward it. Another reply on this link will replace yours.</p>}
 
           {partyState === 'loading' ? (
             <p className="mt-8 text-[15px] text-mute">Checking your invitation…</p>
@@ -1761,6 +1762,7 @@ function Reply() {
               <p className="mt-1 text-[14px] text-mute">
                 {rsvp.accept ? `${rsvp.seats} seat${rsvp.seats > 1 ? 's' : ''} saved for ${rsvp.name}. Ticket ${rsvp.ticket}.` : `Thank you for telling us, ${rsvp.name}. You'll be missed.`}
               </p>
+              {party && <p className="mt-3 text-[14px] leading-relaxed text-mute">This link is reserved for you and your companions. Please do not forward it. Another reply on this link will replace yours.</p>}
               <div className="mt-4 flex gap-2">
                 <Pill active onClick={() => setSheet(true)}>View match</Pill>
                 <Pill onClick={startEdit}>Change reply</Pill>
