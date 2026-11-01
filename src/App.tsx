@@ -1244,7 +1244,7 @@ const guest = (name: string, role: string, extra?: Pick<Guest, 'photo' | 'alone'
 
 const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] = [
   { id: 'couple', label: 'Couple', icon: <MaskIco f="bb73e.png" />, people: [guest('Dionnel Niko Miguel', 'Groom', { photo: '/photos/nick-profile.jpg' }), guest('Rizelle Gonzaga Lopez', 'Bride', { photo: '/photos/rizelle-profile.jpg' })] },
-  { id: 'parents', label: 'Parents', icon: <MaskIco f="63cfb.png" />, people: [guest('Dionisio M. Miguel', 'Father of the groom'), guest('Elsie A. Miguel', 'Mother of the groom'), guest('Emeterio F. Lopez', 'Father of the bride'), guest('Rizalminda G. Lopez', 'Mother of the bride')] },
+  { id: 'parents', label: 'Parents', icon: <MaskIco f="63cfb.png" />, people: [guest('Dionisio M. Miguel', 'Father of the groom', { photo: '/people/dionisio-m-miguel.jpg' }), guest('Elsie A. Miguel', 'Mother of the groom', { photo: '/people/elsie-a-miguel.jpg' }), guest('Emeterio F. Lopez', 'Father of the bride', { photo: '/people/emeterio-f-lopez.jpg' }), guest('Rizalminda G. Lopez', 'Mother of the bride', { photo: '/people/rizalminda-g-lopez.jpg' })] },
   { id: 'principal', label: 'Primary Sponsors', icon: <MaskIco f="f3d9b.png" />, people: [
     guest('Mr. Bernard Sahagun', 'Ninong'), guest('Mrs. Elizabeth Sahagun', 'Ninang'),
     guest('Mr. Jimmy Almiranes', 'Ninong'), guest('Mrs. Jeannette Almiranes', 'Ninang'),
@@ -1259,7 +1259,7 @@ const PARTY: { id: string; label: string; icon: ReactNode; people: Guest[] }[] =
     guest('Ptr. Arvin Martin', 'Wedding officiant', { alone: true }),
   ] },
   { id: 'secondary', label: 'Secondary Sponsors', icon: <MaskIco f="f5390.png" />, people: [
-    guest('Richard Damian', 'Candle', { photo: '/people/richard-damian.jpg' }), guest('Marela Laarni Holgado', 'Candle'),
+    guest('Richard Damian', 'Candle', { photo: '/people/richard-damian.jpg' }), guest('Marela Laarni Holgado', 'Candle', { photo: '/people/marela-laarni-holgado.jpg' }),
     guest('Edriane Joelle Agorilla', 'Veil', { photo: '/people/edriane-joelle-agorilla.jpg' }), guest('Jennylene Lopez', 'Veil', { photo: '/people/jennylene-lopez.jpg' }),
     guest('John Edrian Marasigan', 'Cord', { photo: '/people/john-edrian-marasigan.jpg' }), guest('Erika Grace Banuelos', 'Cord', { photo: '/people/erika-grace-banuelos.jpg' }),
   ] },
@@ -1554,31 +1554,53 @@ function Faq() {
 function Gift() {
   return (
     <PromptCard id="gift" className="mx-auto max-w-3xl">
-      <div className="mt-2 grid items-center gap-8 md:grid-cols-[1fr_260px]">
-        <div className="min-w-0">
-          <h2 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em]">Your presence is the gift.</h2>
-          <p className="mt-3 max-w-md text-[15px] leading-relaxed text-mute">
-            If you would like to give something more, a contribution toward our first home together would mean the world.
-          </p>
-          <dl className="mt-6 max-w-md text-[15px]">
-            <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
-              <dt className="text-mute">Bank</dt>
-              <dd className="font-extrabold">BDO</dd>
-            </div>
-            <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
-              <dt className="text-mute">Account name</dt>
-              <dd className="font-extrabold">NewChapter</dd>
-            </div>
-            <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
-              <dt className="text-mute">Account number</dt>
-              <dd className="font-extrabold tracking-[0.14em]">·······4389</dd>
-            </div>
-          </dl>
-          <p className="mt-4 max-w-md text-[13px] leading-relaxed text-mute">BDO to BDO transfers are free. Other banks may charge a fee.</p>
+      <div className="mt-2">
+        <h2 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em]">Your presence is the gift.</h2>
+        <p className="mt-3 max-w-md text-[15px] leading-relaxed text-mute">
+          If you would like to give something more, a contribution toward our first home together would mean the world.
+        </p>
+        <div className="mt-6 grid gap-8 md:grid-cols-2">
+          <div className="min-w-0">
+            <dl className="text-[15px]">
+              <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
+                <dt className="text-mute">Bank</dt>
+                <dd className="font-extrabold">BDO</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
+                <dt className="text-mute">Account name</dt>
+                <dd className="font-extrabold">NewChapter</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
+                <dt className="text-mute">Account number</dt>
+                <dd className="font-extrabold tracking-[0.14em]">·······4389</dd>
+              </div>
+            </dl>
+            <p className="mt-4 text-[13px] leading-relaxed text-mute">BDO to BDO transfers are free. Other banks may charge a fee.</p>
+            <figure className="mx-auto mt-5 w-full max-w-[260px] rounded-[28px] bg-white p-3 ring-1 ring-line">
+              <img src="/assets/gift-qr.png" alt="BDO QR code for NewChapter, account ending 4389" className="w-full" />
+            </figure>
+          </div>
+          <div className="min-w-0">
+            <dl className="text-[15px]">
+              <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
+                <dt className="text-mute">Bank</dt>
+                <dd className="font-extrabold">BPI</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
+                <dt className="text-mute">Account name</dt>
+                <dd className="font-extrabold">N and Z</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line py-3">
+                <dt className="text-mute">Account number</dt>
+                <dd className="font-extrabold tracking-[0.14em]">········674</dd>
+              </div>
+            </dl>
+            <p className="mt-4 text-[13px] leading-relaxed text-mute">Transfer fees may apply.</p>
+            <figure className="mx-auto mt-5 w-full max-w-[260px] rounded-[28px] bg-white p-3 ring-1 ring-line">
+              <img src="/assets/gift-qr-bpi.png" alt="BPI QR code for N and Z, account ending 674" className="w-full" />
+            </figure>
+          </div>
         </div>
-        <figure className="mx-auto w-full max-w-[260px] rounded-[28px] bg-white p-3 ring-1 ring-line">
-          <img src="/assets/gift-qr.png" alt="BDO QR code for NewChapter, account ending 4389" className="w-full" />
-        </figure>
       </div>
     </PromptCard>
   )
