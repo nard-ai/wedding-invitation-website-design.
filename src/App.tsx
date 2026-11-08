@@ -1765,7 +1765,7 @@ function Reply() {
             <div className="anim-rise mt-8 rounded-[22px] bg-well p-5">
               <p className="text-[18px] font-extrabold">{rsvp.accept ? "It's a match 💜" : "We'll save you a slice."}</p>
               <p className="mt-1 text-[14px] text-mute">
-                {rsvp.accept ? `${rsvp.seats} seat${rsvp.seats > 1 ? 's' : ''} saved for ${rsvp.name}. Ticket ${rsvp.ticket}.` : `Thank you for telling us, ${rsvp.name}. You'll be missed.`}
+                {rsvp.accept ? `${rsvp.seats} seat${rsvp.seats > 1 ? 's' : ''} saved for ${rsvp.name}. Ticket ${rsvp.ticket}.` : `Thank you for telling us, ${rsvp.name}.`}
               </p>
               {party && <p className="mt-3 text-[14px] leading-relaxed text-mute">This link is reserved for you and your companions. Please do not forward it. Another reply on this link will replace yours.</p>}
               <div className="mt-4 flex gap-2">
